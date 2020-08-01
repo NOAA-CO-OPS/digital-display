@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block title %}Index{% endblock %}
+{% block head %}
+  {{ super() }}
+  <style type="text/css">
+    .important { color: #336699; }
+  </style>
+{% endblock %}
+{% block content %}
+  <video width="400" controls playsinline autoplay muted id="homeVideo">
+    <source src={{ url_for('static', filename="aVideo.mp4") }} type="video/mp4">
+    Your browser does not support HTML video.
+  </video>
+{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block javascript %}
+<script>    
+     window.setTimeout(function(){
+
+       // Move to a new location or you can do something else
+       window.location.href = "http://localhost:5000/water_level";
+       }, 330000);
+
+ </script>
+{% endblock %}
