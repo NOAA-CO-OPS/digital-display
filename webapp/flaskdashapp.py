@@ -6,16 +6,15 @@
 ### Combining Flask and dash to build a dash board. This dash board
 ###  * have a left panel with the most recent water level, water temp, air temp, air pressure,
 ###    winds, gust, and current local time. Latest data is pulled from data API.
-###  * The dash script is reloaded to capture the latest data by default.
-###  * Currently only showing water level. 
+###  * On the right, plots cycles from water level, etc, to wind and back to water level.
+### This script points to the assets/ folder for plots.
 ###
 ### To do.. 
-###  1. Combine this with flaskapp.py to refresh the plot on the right every so often
-###  2. Figure out how to do do width / height based on monitor size (%)
-###  3. Highlight the current item on the left panel
+###  1. Highlight the current item on the left panel
+###  2. Add in intro video
 ### 
 ### To run: 
-###  * install flask,. dash, and dash_bootstrap_components
+###  * install flask, dash, and dash_bootstrap_components
 ###  * $ git clone https://github.com/NOAA-CO-OPS/digital-display.git digital-display
 ###  * download all mp4 / gif from
 ###        https://drive.google.com/drive/folders/1DzG6dCOlgtjsexzx0y2UKUY49m6B2Gtw?usp=sharing
@@ -27,13 +26,28 @@
 ### If it gives error messages, keep refreshing the page (or Ctrl-F5).
 #################################################################################################
 
-import flask, dash, requests, pandas, time
+#####################################
+### Import libraries
+#####################################
+import flask, dash, requests, pandas
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc 
 from dash.dependencies import Output, Input
 
+#####################################
+### Define constants
+#####################################
+## Product query from the API
 products = ['water_level', 'water_temperature', 'air_temperature', 'air_pressure', 'wind']
+
+## API template
+##  * at Santa Monica 9410840
+##  * always retrieve the latest data
+##  * local time LST
+##  * in English unit (feet, degF, knots, etc)
+##  * in JSON for python dictionary
+##  * water level at MLLW
 mainapi = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?" + \
           "date=latest&station=9410840&product={0}&datum=MLLW&time_zone=lst&units=english&format=json"
 
@@ -41,9 +55,36 @@ mainapi = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?" + \
 ### Define functions
 #####################################
 def get_latest_product (product):
-    response = requests.get (mainapi.format (product))
-    content = response.json()
-    response.close ()
+
+    ''' Get_latest_product() returns the latest data of a specific product from CO-OPS API.
+        For water level, water temp, air temp, and air pressure, the key is ['data']['v'].
+        For wind, the key is ['data']['s']. Further, wind direction and gust are also
+        retrieved from the wind API.
+
+        For whatever reasons, if the retrieval fails, empty strings are returned.
+
+        input param
+        -----------
+        product (str): Product query - must be in the `products` list
+
+        return params
+        -------------
+        time  (str): Time of retrieved data
+        value (str): Value of retrieved data
+        dir   (str): If wind product, wind direction is returned
+        gust  (str): If wind product, gust is returned
+    '''
+
+    try:
+        ## Try to retrieve the latest data
+        response = requests.get (mainapi.format (product))
+        content = response.json()
+        response.close ()
+    except:
+        ## If any failure, return empty strings so no entries shown on display.
+        if product == 'wind': return '', '', ''
+        return '', ''
+
     ## Wind has more info (gust and direction) and keys are different
     if product == 'wind':
         return content['data'][0]['t'], content['data'][0]['s'], content['data'][0]['dr'], content['data'][0]['g']
@@ -51,6 +92,18 @@ def get_latest_product (product):
     return content['data'][0]['t'], content['data'][0]['v']
 
 def get_latest ():
+
+    ''' Get_latest() returns a dictionary of the most recent observed data. This function
+        loops through each product in the `products` list, calls the API, and retrieve all
+        recent data. Time is reformated to "08/13-2020 02:45 PM". Most product has a time
+        stamp and a value. For wind, 3 values are retrived including wind speed, wind
+        direction and wind gust.
+
+        return params
+        -------------
+        latest (dict): The most recent observation data from API
+    '''
+
     latest = {}
     for product in products:
         this = get_latest_product (product)
@@ -58,17 +111,31 @@ def get_latest ():
         if not 'time' in latest:
             latest['time'] = pandas.to_datetime (this[0]).strftime ('%m/%d/%Y %I:%M %p')
         latest[product] = this[1]
+        ## For wind, retrieve direction and gust as well
         if product == 'wind':
             latest[product + '_dir'] = this[2]
             latest[product + '_gust'] = this[3]
     return latest
 
+def make_layout():
 
-#####################################
-### Define variables
-#####################################
-## Define dashboard layout 
-def make_layout(page_name):
+    ''' Make_layout() returns the layout of the dash. The lay out has 1 row and 2 columns.
+        The left column is a panel listing the most recent data, and the right column cycles
+        from water level, water temp, air temp, air pressure, wind, and back to water level.
+
+        For the left panel, data is retrieved every 6 minutes. Retrival is triggered by the
+        dcc.Interval which fires a call to execute update_latest(), which updates the values
+        by element IDs.
+
+        Each of the 5 plots on the right has its own HTML div, and their display keys in
+        their style dicts switches between 'none' and 'block'. Rotation is triggered by a
+        separate dcc.Interval which fires a call to execute update_plot. The number of
+        intervals are counted to determine which plot to show on the display.
+
+        return param
+        ------------
+        HTML div (html.Div): Display layout
+    '''
 
     return html.Div([
     # Left column - data
@@ -83,7 +150,7 @@ def make_layout(page_name):
         dcc.Markdown (id='latest_gust'),
         ], style={'marginBottom': 50, 'marginTop': 25, 'marginLeft':15, 'marginRight':15, 'fontSize':18})
     , width=3),
-    # Right column - plot
+    # Right column - plots
     ## 1. water level
     html.Div([
         html.Div ([
@@ -130,21 +197,25 @@ def make_layout(page_name):
     ], id='winds', style={'marginBottom': 50, 'marginTop': 25, 'marginLeft':15, 'marginRight':15, 'fontSize':18, 'display':'none'}), 
 
     ]), 
-            dcc.Interval(
-            id='interval-component',
-            interval=12*1000, 
-            n_intervals = 0
-        ),
-            dcc.Interval(
-            id='interval-latest-data',
-            interval=36*1000, ## 6 min
-            n_intervals = 0
-        )
+    ## Interval to switch between plots - 12 sec
+    dcc.Interval(
+        id='interval-component',
+        interval=12*1000, 
+        n_intervals = 0
+    ),
+    ## Interval to retrive data - 6 min
+    dcc.Interval(
+        id='interval-latest-data',
+        interval=36*1000, ## 6 min
+        n_intervals = 0
+    )
     ])
 
-## Define a new dashboard with bootstrap
+#####################################
+### Define new App
+#####################################
 app = dash.Dash(__name__, external_stylesheets = [dbc.themes.BOOTSTRAP])
-app.layout = make_layout ('water_level')
+app.layout = make_layout ()
 
 @app.callback ([Output('water_level', 'style'),
                 Output('water_temp', 'style'),
@@ -153,8 +224,21 @@ app.layout = make_layout ('water_level')
                 Output('winds', 'style')],
               [Input('interval-component', 'n_intervals')])
 def update_plot(n_reloads):
+    ''' Update_plot() returns the style dictionaries for all 5 Div. N_reloads counts the
+        intervals as dcc.Interval fires events. Given 5 plots to rotate, if the reminder
+        of n_reloads / 5 determines which plot to be shown on the display. For the rest
+        of the div, their display keys are set as 'none' to hide their div. 
+
+        input param
+        -----------
+        n_reloads (int): Number of intervals so far - counted by dcc.Interval()
+
+        return param
+        ------------
+        styles (list): A list of 5 dictionaries, each of which determines whether the
+                       corresponding div should be shown
+    '''
     base_style={'marginBottom': 50, 'marginTop': 25, 'marginLeft':15, 'marginRight':15, 'fontSize':18}
-    print (n_reloads)
     n_reloads = (n_reloads) % 5
     styles = []
     for index, page in enumerate (['water_level', 'water_temp', 'air_temp', 'air_pressure', 'winds']):
@@ -177,8 +261,21 @@ def update_plot(n_reloads):
               [Input('interval-latest-data', 'n_intervals')])
 def update_latest(n_reloads):
 
-    latest = get_latest()
+    ''' Update_latest() returns the inline HTML text for the left panel and the title on
+        the right. The latest data is retrieved from the API.
 
+        input param
+        -----------
+        n_reloads (int): Number of intervals so far - not actually used.
+
+        return param
+        ------------
+        styles (list): A list of 5 dictionaries, each of which determines whether the
+                       corresponding div should be shown
+    '''    
+    ## Get the latest data from API
+    latest = get_latest()
+    ## Define the text on the left panel
     latest_time = '**Recent Data** as of ' + latest['time'] + ' Local Time'
     latest_water_level = '**Water Level**: ' + latest['water_level'] + ' ft Above MLLW'
     latest_water_temp = '**Water Temp**: ' + latest['water_temperature'] + ' F'
@@ -186,7 +283,7 @@ def update_latest(n_reloads):
     latest_air_pressure = '**Barometric Pressure**: ' + latest['air_pressure'] + ' mb'
     latest_winds = '**Winds**: ' + latest['wind'] + ' kts from '+ latest['wind_dir']
     latest_gust = '**Gusting to**: ' + latest['wind_gust'] + ' kts from '+ latest['wind_dir']
-
+    ## Define the title on the right panel
     title_water_level = latest['water_level'] + ' ft Above MLLW'
     title_water_temp = latest['water_temperature'] + ' F'
     title_air_temp = latest['air_temperature'] + ' F'
@@ -197,5 +294,8 @@ def update_latest(n_reloads):
            latest_winds, latest_gust, title_water_level, title_water_temp, title_air_temp, \
            title_air_pressure, title_winds
 
+#####################################
+### Script starts here!
+#####################################
 if __name__ == '__main__':
     app.run_server(debug=True)
