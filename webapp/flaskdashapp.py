@@ -24,6 +24,9 @@
 ###
 ### If you see the plot below the menu panel, make sure your chrome browser is widen.
 ### If it gives error messages, keep refreshing the page (or Ctrl-F5).
+###
+### 08/15/2020:
+###   Included an intro video (gif) and highlighting left panel tab as plots rotates
 #################################################################################################
 
 #####################################
@@ -121,13 +124,14 @@ def make_layout():
 
     ''' Make_layout() returns the layout of the dash. The lay out has 1 row and 2 columns.
         The left column is a panel listing the most recent data, and the right column cycles
-        from water level, water temp, air temp, air pressure, wind, and back to water level.
+        from intro video, water level, water temp, air temp, air pressure, wind, and back
+        to intro video.
 
         For the left panel, data is retrieved every 6 minutes. Retrival is triggered by the
         dcc.Interval which fires a call to execute update_latest(), which updates the values
-        by element IDs.
+        by element IDs. The observable that is currently displayed on the right is highlighted.
 
-        Each of the 5 plots on the right has its own HTML div, and their display keys in
+        Each of the 6 plots on the right has its own HTML div, and their display keys in
         their style dicts switches between 'none' and 'block'. Rotation is triggered by a
         separate dcc.Interval which fires a call to execute update_plot. The number of
         intervals are counted to determine which plot to show on the display.
@@ -142,15 +146,20 @@ def make_layout():
     dbc.Row([dbc.Col(
         html.Div([
         dcc.Markdown (id='latest_time', style={'fontSize':25}),
-        dcc.Markdown (id='latest_water_level'),
-        dcc.Markdown (id='latest_water_temp'),
-        dcc.Markdown (id='latest_air_temp'),
-        dcc.Markdown (id='latest_air_pressure'),
-        dcc.Markdown (id='latest_winds'),
-        dcc.Markdown (id='latest_gust'),
+        dcc.Markdown (id='latest_water_level', style={'backgroundColor':'#ffffff'}),
+        dcc.Markdown (id='latest_water_temp', style={'backgroundColor':'#ffffff'}),
+        dcc.Markdown (id='latest_air_temp', style={'backgroundColor':'#ffffff'}),
+        dcc.Markdown (id='latest_air_pressure', style={'backgroundColor':'#ffffff'}),
+        dcc.Markdown (id='latest_winds', style={'backgroundColor':'#ffffff'}),
+        dcc.Markdown (id='latest_gust', style={'backgroundColor':'#ffffff'}),
         ], style={'marginBottom': 50, 'marginTop': 25, 'marginLeft':15, 'marginRight':15, 'fontSize':18})
     , width=3),
     # Right column - plots
+    ## 0. intro video
+    html.Div([
+        html.Img(src=app.get_asset_url('introVideo.gif'), style={'width':2000, 'height':1000})
+    ], id='intro_video', style={'marginBottom': 50, 'marginTop': 25, 'marginLeft':15, 'marginRight':15, 'fontSize':18,'display':'block'}),
+
     ## 1. water level
     html.Div([
         html.Div ([
@@ -158,7 +167,7 @@ def make_layout():
             dcc.Markdown (id='title_water_level', style={'fontSize':20, 'textAlign':'center'}),
         ], style={'backgroundColor':'#E0FFFF', 'textAlign':'center'}),
         html.Img(src=app.get_asset_url('water_level.gif'), style={'width':2000, 'height':1000})
-    ], id='water_level', style={'marginBottom': 50, 'marginTop': 25, 'marginLeft':15, 'marginRight':15, 'fontSize':18,'display':'block'}),
+    ], id='water_level', style={'marginBottom': 50, 'marginTop': 25, 'marginLeft':15, 'marginRight':15, 'fontSize':18,'display':'none'}),
 
     ## 2. water temp
     html.Div([
@@ -217,17 +226,27 @@ def make_layout():
 app = dash.Dash(__name__, external_stylesheets = [dbc.themes.BOOTSTRAP])
 app.layout = make_layout ()
 
-@app.callback ([Output('water_level', 'style'),
+@app.callback ([Output('intro_video', 'style'),
+                Output('water_level', 'style'),
                 Output('water_temp', 'style'),
                 Output('air_temp', 'style'),
                 Output('air_pressure', 'style'),
-                Output('winds', 'style')],
+                Output('winds', 'style'),
+                Output('latest_water_level', 'style'),
+                Output('latest_water_temp', 'style'),
+                Output('latest_air_temp', 'style'),
+                Output('latest_air_pressure', 'style'),
+                Output('latest_winds', 'style')],
               [Input('interval-component', 'n_intervals')])
 def update_plot(n_reloads):
-    ''' Update_plot() returns the style dictionaries for all 5 Div. N_reloads counts the
-        intervals as dcc.Interval fires events. Given 5 plots to rotate, if the reminder
-        of n_reloads / 5 determines which plot to be shown on the display. For the rest
+    ''' Update_plot() returns the style dictionaries for all divs. N_reloads counts the
+        intervals as dcc.Interval fires events. Given 6 plots to rotate, if the reminder
+        of n_reloads / 6 determines which plot to be shown on the display. For the rest
         of the div, their display keys are set as 'none' to hide their div. 
+
+        The tabs on the left panel are highlighted depending on the current plot on the
+        right. So, the styling of those divs are also updated. Together, there are a
+        total of 6 + 5 = 11 styling dictionaries.
 
         input param
         -----------
@@ -235,16 +254,18 @@ def update_plot(n_reloads):
 
         return param
         ------------
-        styles (list): A list of 5 dictionaries, each of which determines whether the
-                       corresponding div should be shown
+        styles (list): A list of 11 dictionaries, each of which determines whether the
+                       corresponding div should be shown or highlighted.
     '''
     base_style={'marginBottom': 50, 'marginTop': 25, 'marginLeft':15, 'marginRight':15, 'fontSize':18}
-    n_reloads = (n_reloads) % 5
-    styles = []
-    for index, page in enumerate (['water_level', 'water_temp', 'air_temp', 'air_pressure', 'winds']):
+    n_reloads = (n_reloads) % (len (products) + 1)
+    plot_styles, panel_styles = [], []
+    for index, page in enumerate (['intro_video', 'water_level', 'water_temp', 'air_temp', 'air_pressure', 'winds']):
         display = 'block' if index==n_reloads else 'none'
-        styles.append ({**{'display':display}, **base_style})
-    return styles
+        color = '#E0FFFF' if index==n_reloads else '#ffffff'
+        plot_styles.append ({**{'display':display}, **base_style})
+        if not page == 'intro_video': panel_styles.append ({'backgroundColor':color})
+    return plot_styles + panel_styles
 
 @app.callback ([Output('latest_time', 'children'),
                 Output('latest_water_level', 'children'),
