@@ -6,9 +6,13 @@ Initial version of micro web uses python Flask. With a template HTML and simple 
 
 1. $ git clone https://github.com/NOAA-CO-OPS/digital-display.git digital-display
 2. create virtual environment ddp--change directory to digital-display folder and run
-	'<conda env create -f environment.yml>'
-3. activate virtual environment--
-	'<conda activate ddp>'
+```shell
+conda env create -f environment.yml
+```
+3. activate virtual environment
+```shell
+conda activate ddp
+```	
 4. download all mp4 / gif from [webbapp_content_for_test Google folder](https://drive.google.com/drive/folders/1H20lAG-23YuuaqrZyWKHD39qFWGU4E4W?usp=sharing) to digital-display/webapp/assets/
 5. run python flaskdashapp.py
 6. open browser and go to http://127.0.0.1:8050/
