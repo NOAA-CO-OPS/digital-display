@@ -15,7 +15,7 @@ conda activate ddp
 ```	
 4. download all mp4 / gif from [webbapp_content_for_test Google folder](https://drive.google.com/drive/folders/1H20lAG-23YuuaqrZyWKHD39qFWGU4E4W?usp=sharing) to digital-display/webapp/assets/
 5. run python flaskdashapp.py
-6. open browser and go to http://127.0.0.1:8050/
+6. open browser and go to http://localhost:8050/
 
 Note: You may have to zoom out for content to display correctly since it is formatted for a 23" monitor.
 
