@@ -1,13 +1,18 @@
 This folder contains the scripts for the web application.
 
-Initial version of micro web uses python Flask. With a template HTML and simple CSS and JS, a local host webpage automatically cycle through several HTML pages from home (video), to water level, to wind, to air temperature, to water temperature, to pressure, and back to home (video). Currently, I am using a 5-min video from DDP Google folder and some snapshots of plots from TAC sites for testing.
+Initial version of micro web uses python Flask. With a template HTML and simple CSS and JS, a local host webpage automatically cycle through several HTML pages from home (video), to water level, to wind, to air temperature, to water temperature, to pressure, and back to home (video). Currently, I am using a short intro video from DDP Google folder and some snapshots of plots from TAC sites for testing.
 
 ##### Run
 
-1. install flask
-2. $ git clone https://github.com/NOAA-CO-OPS/digital-display.git digital-display
-3. download all mp4 / gif from [my Google folder](https://drive.google.com/drive/folders/1DzG6dCOlgtjsexzx0y2UKUY49m6B2Gtw?usp=sharing) to digital-display/webapp/static/
-4. run python flaskapp.py
-5. open browser and go to http://localhost:5000/home
+1. $ git clone https://github.com/NOAA-CO-OPS/digital-display.git digital-display
+2. create virtual environment ddp--change directory to digital-display folder and run
+	'<conda env create -f environment.yml>'
+4. activate virtual environment--
+	'<conda activate ddp>'
+3. download all mp4 / gif from [webbapp_content_for_test Google folder](https://drive.google.com/drive/folders/1H20lAG-23YuuaqrZyWKHD39qFWGU4E4W?usp=sharing) to digital-display/webapp/assets/
+4. run python flaskdashapp.py
+5. open browser and go to http://127.0.0.1:8050/
 
-If data is downloaded to the static folder, it will first show a 5-min video and then loop through each plot with in a 10 sec time interval, and then go back to the video.
+Note: You may have to zoom out for content to display correctly since it is formatted for a 23" monitor.
+
+It will first show an intro video and then loop through each plot within a 12 sec time interval, and then go back to the video.

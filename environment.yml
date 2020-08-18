@@ -1,0 +1,57 @@
+name: ddp
+channels:
+  - defaults
+dependencies:
+  - ca-certificates=2020.6.24=0
+  - certifi=2020.6.20=py37_0
+  - openssl=1.1.1g=he774522_1
+  - pip=20.2.2=py37_0
+  - python=3.7.7=h81c818b_4
+  - setuptools=49.6.0=py37_0
+  - sqlite=3.32.3=h2a8f88b_0
+  - vc=14.1=h0510ff6_4
+  - vs2015_runtime=14.16.27012=hf0eaf9b_3
+  - wheel=0.34.2=py37_0
+  - wincertstore=0.2=py37_0
+  - zlib=1.2.11=h62dcd97_4
+  - pip:
+    - backcall==0.2.0
+    - brotli==1.0.7
+    - chardet==3.0.4
+    - click==7.1.2
+    - colorama==0.4.3
+    - dash==1.14.0
+    - dash-bootstrap-components==0.10.3
+    - dash-core-components==1.10.2
+    - dash-html-components==1.0.3
+    - dash-renderer==1.6.0
+    - dash-table==4.9.0
+    - decorator==4.4.2
+    - flask==1.1.2
+    - flask-compress==1.5.0
+    - future==0.18.2
+    - idna==2.10
+    - ipython==7.17.0
+    - ipython-genutils==0.2.0
+    - itsdangerous==1.1.0
+    - jedi==0.17.2
+    - jinja2==2.11.2
+    - markupsafe==1.1.1
+    - numpy==1.19.1
+    - pandas==1.1.0
+    - parso==0.7.1
+    - pickleshare==0.7.5
+    - plotly==4.9.0
+    - prompt-toolkit==3.0.6
+    - pygments==2.6.1
+    - python-dateutil==2.8.1
+    - pytz==2020.1
+    - requests==2.24.0
+    - retrying==1.3.3
+    - six==1.15.0
+    - traitlets==4.3.3
+    - urllib3==1.25.10
+    - wcwidth==0.2.5
+    - werkzeug==1.0.1
+prefix: C:\ProgramData\Anaconda3\envs\ddp
+
