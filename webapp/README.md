@@ -4,7 +4,7 @@ Initial version of micro web uses python Flask. With a template HTML and simple 
 
 ##### Run
 
-1. $ git clone https://github.com/NOAA-CO-OPS/digital-display.git digital-display
+1. $ git clone https://github.com/NOAA-CO-OPS/digital-display.git
 2. create virtual environment ddp--change directory to digital-display folder and run
 ```shell
 conda env create -f environment.yml
