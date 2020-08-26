@@ -43,6 +43,7 @@ from dash.dependencies import Output, Input
 #####################################
 ## Product query from the API
 products = ['water_level', 'water_temperature', 'air_temperature', 'air_pressure', 'wind']
+pages = ['intro_video', 'water_level', 'temp', 'air_pressure', 'wind']
 
 ## API template
 ##  * at Santa Monica 9410840
@@ -169,25 +170,16 @@ def make_layout():
         html.Img(src=app.get_asset_url('water_level.gif'), style={'width':2000, 'height':1000})
     ], id='water_level', style={'marginBottom': 50, 'marginTop': 25, 'marginLeft':15, 'marginRight':15, 'fontSize':18,'display':'none'}),
 
-    ## 2. water temp
+    ## 2. water & air temp
     html.Div([
         html.Div ([
-            dcc.Markdown ('**Water Temperature**', style={'fontSize':25, 'textAlign':'center'}),
-            dcc.Markdown (id='title_water_temp',  style={'fontSize':20, 'textAlign':'center'}),
+            dcc.Markdown ('**Air & Water Temperature**', style={'fontSize':25, 'textAlign':'center'}),
+            dcc.Markdown (id='title_air_water_temp',  style={'fontSize':20, 'textAlign':'center'}),
         ], style={'backgroundColor':'#E0FFFF', 'textAlign':'center'}),
-        html.Img(src=app.get_asset_url('water_temp.gif'), style={'width':2000, 'height':1000})
-    ], id='water_temp', style={'marginBottom': 50, 'marginTop': 25, 'marginLeft':15, 'marginRight':15, 'fontSize':18, 'display':'none'}),
+        html.Img(src=app.get_asset_url('temp.gif'), style={'width':2000, 'height':1000})
+    ], id='temp', style={'marginBottom': 50, 'marginTop': 25, 'marginLeft':15, 'marginRight':15, 'fontSize':18, 'display':'none'}),
     
-    ## 3. air temp
-    html.Div([
-        html.Div ([
-            dcc.Markdown ('**Air Temperature**', style={'fontSize':25, 'textAlign':'center'}),
-            dcc.Markdown (id='title_air_temp', style={'fontSize':20, 'textAlign':'center'}),
-        ], style={'backgroundColor':'#E0FFFF', 'textAlign':'center'}),
-        html.Img(src=app.get_asset_url('air_temp.gif'), style={'width':2000, 'height':1000})
-    ], id='air_temp', style={'marginBottom': 50, 'marginTop': 25, 'marginLeft':15, 'marginRight':15, 'fontSize':18, 'display':'none'}),
-    
-    ## 4. Barometric Pressure
+    ## 3. Barometric Pressure
     html.Div([
         html.Div ([
             dcc.Markdown ('**Air Pressure**', style={'fontSize':25, 'textAlign':'center'}),
@@ -196,7 +188,7 @@ def make_layout():
         html.Img(src=app.get_asset_url('pressure.gif'), style={'width':2000, 'height':1000})
     ], id='air_pressure', style={'marginBottom': 50, 'marginTop': 25, 'marginLeft':15, 'marginRight':15, 'fontSize':18, 'display':'none'}),
     
-    ## 5. Winds
+    ## 4. Winds
     html.Div([
         html.Div ([
             dcc.Markdown ('**Winds**', style={'fontSize':25, 'textAlign':'center'}),
@@ -209,7 +201,7 @@ def make_layout():
     ## Interval to switch between plots - 12 sec
     dcc.Interval(
         id='interval-component',
-        interval=12*1000, 
+        interval=25*1000, 
         n_intervals = 0
     ),
     ## Interval to retrive data - 6 min
@@ -228,8 +220,7 @@ app.layout = make_layout ()
 
 @app.callback ([Output('intro_video', 'style'),
                 Output('water_level', 'style'),
-                Output('water_temp', 'style'),
-                Output('air_temp', 'style'),
+                Output('temp', 'style'),
                 Output('air_pressure', 'style'),
                 Output('winds', 'style'),
                 Output('latest_water_level', 'style'),
@@ -258,13 +249,15 @@ def update_plot(n_reloads):
                        corresponding div should be shown or highlighted.
     '''
     base_style={'marginBottom': 50, 'marginTop': 25, 'marginLeft':15, 'marginRight':15, 'fontSize':18}
-    n_reloads = (n_reloads) % (len (products) + 1)
+    n_reloads = (n_reloads) % len (pages)
     plot_styles, panel_styles = [], []
-    for index, page in enumerate (['intro_video', 'water_level', 'water_temp', 'air_temp', 'air_pressure', 'winds']):
+    for index, page in enumerate (pages):
         display = 'block' if index==n_reloads else 'none'
         color = '#E0FFFF' if index==n_reloads else '#ffffff'
         plot_styles.append ({**{'display':display}, **base_style})
         if not page == 'intro_video': panel_styles.append ({'backgroundColor':color})
+        # If temperature, highlight both water and air temps
+        if page == 'temp': panel_styles.append ({'backgroundColor':color})
     return plot_styles + panel_styles
 
 @app.callback ([Output('latest_time', 'children'),
@@ -275,8 +268,7 @@ def update_plot(n_reloads):
                 Output('latest_winds', 'children'),
                 Output('latest_gust', 'children'),
                 Output('title_water_level', 'children'),
-                Output('title_water_temp', 'children'),
-                Output('title_air_temp', 'children'),
+                Output('title_air_water_temp', 'children'),
                 Output('title_air_pressure', 'children'),
                 Output('title_winds', 'children')],
               [Input('interval-latest-data', 'n_intervals')])
@@ -306,13 +298,12 @@ def update_latest(n_reloads):
     latest_gust = '**Gusting to**: ' + latest['wind_gust'] + ' kts from '+ latest['wind_dir']
     ## Define the title on the right panel
     title_water_level = latest['water_level'] + ' ft Above MLLW'
-    title_water_temp = latest['water_temperature'] + ' F'
-    title_air_temp = latest['air_temperature'] + ' F'
+    title_air_water_temp = 'Air: ' + latest['air_temperature'] + ' F' + ' Water: ' + latest['water_temperature'] + ' F'
     title_air_pressure = latest['air_pressure'] + ' mb'
     title_winds = latest['wind'] + ' kts from '+ latest['wind_dir']
     
     return latest_time, latest_water_level, latest_water_temp, latest_air_temp, latest_air_pressure, \
-           latest_winds, latest_gust, title_water_level, title_water_temp, title_air_temp, \
+           latest_winds, latest_gust, title_water_level, title_air_water_temp, \
            title_air_pressure, title_winds
 
 #####################################
