@@ -258,7 +258,7 @@ class met (product.product):
         ## Create a huuuge canvas with 2 subplots.
         fig = plt.figure(figsize=self.fig_size)
         gs = gridspec.GridSpec (ncols=3, nrows=1, width_ratios=[0.9, 1, 1])
-        gs.update (wspace=0.2, bottom=0.2)
+        gs.update (wspace=0.2, bottom=0.25)
 
         ## Left: temperature
         axis = fig.add_subplot(gs[0])
