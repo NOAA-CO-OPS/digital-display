@@ -23,15 +23,15 @@
 ###############################################
 ## Import libraries
 ###############################################
-import requests, pytz, glob, os
+import requests, pytz, glob, os, sys
 import numpy as np
 import pandas as pd
 import datetime as dt
-
+sys.path.append('C:\\Users\\elim.thompson\\Documents\\ddp\\webapp\\plotter\\')
 import product
 
 import matplotlib
-matplotlib.use ('TkAgg')
+matplotlib.use ('Agg')
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -51,6 +51,9 @@ N_YTICKS = product.N_YTICKS
 
 ## Unit conversion factors
 FEET_TO_METERS = 1 / 3.28084
+
+## Monitor dpi
+DPI = product.DPI
 
 ###############################################
 ## Define short lambda functions
@@ -75,14 +78,46 @@ class water_level (product.product):
     # | Getters & setters
     # +------------------------------------------------------------
     @property
-    def latest_pred (self):
+    def pred (self):
         if self._latest_data_df is None: return None
+
+        not_na = ~self._latest_data_df.predicted_hilo.isna()
+
+        now = pd.to_datetime (self.now.strftime ('%Y-%m-%d %H:%M:%S'))
+        time_diff = abs (self._latest_data_df.index - now).total_seconds()
+        min_index = time_diff.argmin ()
+
+        abs (df.index - pandas.to_datetime (water_level_product.now.strftime ('%Y-%m-%d %H:%M:%S'))).total_seconds().argmin()
+
         not_na = ~self._latest_data_df.predicted.isna()
         return self._latest_data_df.predicted.values[not_na][-1]
 
     # +------------------------------------------------------------
     # | Collect water level data
     # +------------------------------------------------------------
+    def get_today_tides (self):
+
+        ## Covers long enough period to ensure at least 3 tides are available
+        begin_date = self.now - dt.timedelta (hours=24)
+        end_date   = self.now + dt.timedelta (hours=36)
+
+        ## Pull dataframe
+        hilo_df = self._load_latest (is_hilo=True, is_predictions=True,
+                                     begin_date=begin_date, end_date=end_date)
+        hilo_df.columns = ['height', 'event']
+        hilo_df = hilo_df[~hilo_df.event.isna()]
+        hilo_df['height'] = hilo_df.height.astype (float)
+
+        ## Select 1 before and 2 after now
+        now = pd.to_datetime (self._now.strftime ('%Y-%m-%d %H:%M:%S'))
+        time_diff = abs (hilo_df.index - now).total_seconds()
+        min_index = time_diff.argmin ()
+        #  If the min difference is positive, collect 2 next tides
+        #  If it is negative, collect 1 next tide
+        n_before = 1 if time_diff[min_index] > 0 else 2
+        n_after = 2 if time_diff[min_index] > 0 else 1
+        return hilo_df.iloc[min_index-n_before:min_index+n_after, :]
+
     def _load_data (self):
 
         ## Make sure "now" time is set
@@ -135,8 +170,8 @@ class water_level (product.product):
         yunit ='m' if doMetric else 'ft'
         
         ## Create a huuuge canvas with 1 subplot.
-        fig = plt.figure(figsize=self.fig_size)
-        gs = gridspec.GridSpec (ncols=1, nrows=1)
+        fig = plt.figure(figsize=self.fig_size, dpi=DPI)
+        gs = gridspec.GridSpec (ncols=1, nrows=1, bottom=0.15, top=0.85)
         axis = fig.add_subplot(gs[0])
 
         # 1. Plot entire prediction time-series
@@ -171,7 +206,7 @@ class water_level (product.product):
         lgd = axis.legend (bbox_to_anchor=(0., 1, 1, 0), 
                            loc='lower right', fontsize=self._fontsize)
         plt.savefig(self._plot_path + '/' + dot_time.strftime ('%Y%m%d%H%M') + '.jpg',
-                    bbox_extra_artists=(lgd,))
+                    bbox_extra_artists=(lgd,), dpi=DPI)
         
         ## Properly close the window for the next plot
         plt.close ('all')
@@ -194,7 +229,7 @@ class water_level (product.product):
         ## Toggle from feet to meters and back every N frames
         doMetric = True # Start with Feet
         end_time = self.latest_obs_time
-        timestamps = list (self._latest_data_df.iloc[::4, :].index) + [end_time]
+        timestamps = list (self._latest_data_df.iloc[::10, :].index) + [end_time]
         for index, dot_time in enumerate (sorted (timestamps)):
             # If there is no more valid observation points, exit the loop
             if dot_time > end_time: break
