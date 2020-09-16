@@ -21,7 +21,7 @@ conda activate ddp
 
 ### When you start working on ddp
 
-## Start generating GIFs
+#### Start generating GIFs
 1. Open your favorite prompt (cmd prompt, WindowsPowerShell, Anaconda prompt, etc)
 2. Execute run_plot_schedule.py
 ```shell
@@ -30,7 +30,7 @@ $ python run_plot_schedule.py
 ```
 Do not close this prompt until you are done with ddp work.
 
-## Start digital display
+#### Start digital display
 3. Open another prompt.
 4. Execute hybridapp.py
 ```shell
