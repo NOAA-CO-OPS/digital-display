@@ -1,10 +1,14 @@
 This folder contains the scripts for the web application.
 
-Initial version of micro web uses python Flask. With a template HTML and simple CSS and JS, a local host webpage automatically cycle through several HTML pages from home (video), to water level, to wind, to air temperature, to water temperature, to pressure, and back to home (video). Currently, I am using a short intro video from DDP Google folder and some snapshots of plots from TAC sites for testing.
+Initial version of micro web uses python Flask & Dash (hybridapp.py). A local host webpage automatically cycle through several plots from home (video), to water level (GIF), to sea level trend (video), to MET (GIF) and back to home (video). Currently, I am using a short intro and sea-level-trned videos from DDP Google folder. For the GIFs, a separate python script (plotter/run_plot_schedule.py) is written to generate GIFs every 6 minutes using the different product sub-classes.
 
-##### Run
+### Preparation
 
-1. $ git clone https://github.com/NOAA-CO-OPS/digital-display.git
+1. Clone repo. Using your favorite prompt (cmd, WindowsPowerShell, etc)
+```shell
+$ cd C:\\Users\\first.lastname\\ddp\\
+$ git clone https://github.com/NOAA-CO-OPS/digital-display.git digital-display
+```
 2. create virtual environment ddp--change directory to digital-display folder and run
 ```shell
 conda env create -f environment.yml
@@ -14,9 +18,38 @@ conda env create -f environment.yml
 conda activate ddp
 ```	
 4. download all mp4 / gif from [webbapp_content_for_test Google folder](https://drive.google.com/drive/folders/1H20lAG-23YuuaqrZyWKHD39qFWGU4E4W?usp=sharing) to digital-display/webapp/assets/
-5. change directory to webapp & run flaskdashapp.py
-6. open browser and go to http://localhost:8050/
+
+### When you start working on ddp
+
+## Start generating GIFs
+1. Open your favorite prompt (cmd prompt, WindowsPowerShell, Anaconda prompt, etc)
+2. Execute run_plot_schedule.py
+```shell
+$ cd C:\\Users\\first.lastname\\ddp\\digital-display\\webapp\\plotter\\
+$ python run_plot_schedule.py
+```
+Do not close this prompt until you are done with ddp work.
+
+## Start digital display
+3. Open another prompt.
+4. Execute hybridapp.py
+```shell
+$ cd C:\\Users\\first.lastname\\ddp\\digital-display\\webapp\\
+$ python hybridapp.py
+```
+Do not close this prompt until you are done with ddp work.
+You will see the following message from your prompt ...
+```shell
+ * Serving Flask app "hybridapp" (lazy loading)
+ * Environment: production
+   WARNING: This is a development server. Do not use it in a production deployment.
+   Use a production WSGI server instead.
+ * Debug mode: on
+```
+5. When you see the above message, open a new web browser tab and type in URL http://localhost:8050/.
 
 Note: You may have to zoom out for content to display correctly since it is formatted for a 23" monitor.
 
-It will first show an intro video and then loop through each plot within a 12 sec time interval, and then go back to the video.
+### When you are done working on ddp
+You should have 2 prompts opened. Make sure you close them both to avoid unnecessary background processing.
+
