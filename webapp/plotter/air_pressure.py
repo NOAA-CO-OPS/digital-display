@@ -23,15 +23,16 @@
 ###############################################
 ## Import libraries
 ###############################################
-import requests, pytz, glob, os
+import requests, pytz, glob, os, sys
 import numpy as np
 import pandas as pd
 import datetime as dt
 
+sys.path.append('C:\\Users\\elim.thompson\\Documents\\ddp\\webapp\\plotter\\')
 import product
 
 import matplotlib
-matplotlib.use ('TkAgg')
+matplotlib.use ('Agg')
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -43,6 +44,9 @@ plt.rc ('font', serif='Computer Modern Roman')
 ###############################################
 ## Define constants
 ###############################################
+## Monitor dpi
+DPI = product.DPI
+
 ## For plotting style
 N_YTICKS = product.N_YTICKS
 
@@ -189,15 +193,15 @@ class air_pressure (product.product):
             # Write tick label
             ticklabel = self._tticklabels[index]
             x,y = label.get_position()
-            lab = axis.text(x,y, ticklabel, transform=label.get_transform(),
-                        ha=label.get_ha(), va=label.get_va(), fontsize=self._fontsize-10)
+            lab = axis.text(x,y+0.22, ticklabel, transform=label.get_transform(),
+                        ha=label.get_ha(), va=label.get_va(), fontsize=self._fontsize-7)
             lab.set_rotation(angle-90)
             # Add Rain, Change, Fair
             if ticklabel in [980, 1000, 1020]:
                 text = 'Rain' if ticklabel==980 else 'Change' if ticklabel==1000 else 'Fair'
                 xoffset = 0.3 if ticklabel==980 else 0 if ticklabel==1000 else -0.3
-                lab = axis.text (x+xoffset, y+0.5, text, family='fantasy', transform=label.get_transform(),
-                                ha=label.get_ha(), va=label.get_va(), fontsize=self._fontsize-10)
+                lab = axis.text (x+xoffset, y+0.7, text, family='fantasy', transform=label.get_transform(),
+                                ha=label.get_ha(), va=label.get_va(), fontsize=self._fontsize-7)
                 lab.set_rotation((x+xoffset)*180/np.pi-90)
 
         axis.set_xticklabels([])
@@ -209,6 +213,11 @@ class air_pressure (product.product):
         xsubticks = np.linspace (0, 2*np.pi, 41)
         xsubticks = xsubticks[np.logical_or (xsubticks<5*np.pi/4, xsubticks>7*np.pi/4)]        
         for t in xsubticks: axis.plot([t,t], tick, lw=0.75, color="k")
+
+        #  Add "Air pressure mb"
+        lab = axis.text(3*np.pi/2-17/180*np.pi,y+0.1, 'Air pressure\nmb', transform=label.get_transform(),
+                        ha='center', va='bottom', fontsize=self._fontsize-7)        
+        lab.set_rotation(0)
 
         #  5. Draw an inner line
         thetas = np.linspace (-45*np.pi/180, 225*np.pi/180, 500)
@@ -230,10 +239,11 @@ class air_pressure (product.product):
             axis.add_patch(arrow)
 
         ## 2. Plot pressure arrow at dot time
-        arrow = matplotlib.patches.FancyArrowPatch((0, 0), (pressure_thetas[-1], self._rradius),
-                                            arrowstyle=self._needle_style,
-                                            color=self._needle_color, alpha=1.0)
-        axis.add_patch(arrow)
+        if np.isfinite (pressure_thetas[-1]):
+            arrow = matplotlib.patches.FancyArrowPatch((0, 0), (pressure_thetas[-1], self._rradius),
+                                                arrowstyle=self._needle_style,
+                                                color=self._needle_color, alpha=1.0)
+            axis.add_patch(arrow)
 
         ## Turn off all grid
         axis.grid(False)   
@@ -247,9 +257,9 @@ class air_pressure (product.product):
         if df is None: raise IOError ("Please load data before plotting.")
         
         ## Create a huuuge canvas with 2 subplots.
-        fig = plt.figure(figsize=self.fig_size)
-        gs = gridspec.GridSpec (ncols=2, nrows=1, width_ratios=[3, 1])
-        gs.update (top=0.8, wspace=0.03)
+        fig = plt.figure(figsize=self.fig_size, dpi=DPI)
+        gs = gridspec.GridSpec (ncols=2, nrows=1, width_ratios=[3, 1], bottom=0.15, top=0.85)
+        gs.update (wspace=0.03)
 
         ## Left: Time-series plot
         axis = fig.add_subplot(gs[0])
@@ -270,7 +280,7 @@ class air_pressure (product.product):
 
         ## Format title / layout
         plt.savefig(self._plot_path + '/' + dot_time.strftime ('%Y%m%d%H%M') + '.jpg',
-                    bbox_extra_artists=(lgd,))
+                    bbox_extra_artists=(lgd,), dpi=DPI)
         
         ## Properly close the window for the next plot
         plt.close ('all')
@@ -291,7 +301,7 @@ class air_pressure (product.product):
 
         ## Generate each time step until the last observation point
         end_time = self.latest_obs_time
-        timestamps = list (self._latest_data_df.iloc[::4, :].index) + [end_time]
+        timestamps = list (self._latest_data_df.iloc[::10, :].index) + [end_time]
         for index, dot_time in enumerate (sorted (timestamps)):
             # If there is no more valid observation points, exit the loop
             if dot_time > end_time: break
