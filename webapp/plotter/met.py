@@ -23,18 +23,19 @@
 ###############################################
 ## Import libraries
 ###############################################
-import requests, pytz, glob, os
+import requests, pytz, glob, os, sys
 import numpy as np
 import pandas as pd
 import datetime as dt
 
+sys.path.append('C:\\Users\\elim.thompson\\Documents\\ddp\\webapp\\plotter\\')
 import product
 from temperature import temperature
 from air_pressure import air_pressure
 from wind import wind
 
 import matplotlib
-matplotlib.use ('TkAgg')
+matplotlib.use ('Agg')
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -49,6 +50,10 @@ plt.rc ('font', serif='Computer Modern Roman')
 ## Time format for display
 TIME_FORMAT = '%m/%d/%Y %I:%M %p'
 
+## Monitor dpi
+DPI = product.DPI
+FIG_SIZE = (1400/DPI, 1000/DPI)
+
 ## For plotting style
 N_YTICKS = product.N_YTICKS
 
@@ -59,6 +64,20 @@ KNOTS_TO_MPERSEC = 1 / 0.514444
 ## For met
 MET_LEGEND = ['Data at' , 'Wind Direction'   , 'Wind Speed',
               'Air Temperature', 'Water Temperature', 'Air Pressure']
+
+## For thermometer - longer
+TEMP_BULB_RADIUS = 7
+TEMP_TUBE_SCALE = 70
+TEMP_TUBE_HEIGHT = TEMP_TUBE_SCALE + 5 # Tube is slightly taller
+TEMP_SCALE_PAD = 15
+#  Position of air and water thermometer on time-series plot
+#  [x-coordinate (lower left), y-coordinate (lower left), width, height]
+TEMP_AIR_THERMO_POS = [0.0, 0.0, 0.5, 1]
+TEMP_WATER_THERMO_POS = [0.5, 0.0, 0.5, 1]
+
+## For general plotting
+FONTSIZE = 20
+LINEWIDTH = 3
 
 ###############################################
 ## Define short lambda functions
@@ -83,6 +102,10 @@ class met (product.product):
         self._temperature = None
         self._air_pressure = None
 
+        self._fig_size = FIG_SIZE
+        self._fontsize = FONTSIZE
+        self._linewidth= LINEWIDTH
+
     def __repr__ (self):
         pass
 
@@ -94,6 +117,46 @@ class met (product.product):
         if self._latest_data_df is None: return None
         not_na = ~self._latest_data_df.wind_speed.isna()
         return self._latest_data_df.wind_speed.index[not_na][-1]
+
+    @property
+    def latest_air_temp (self):
+        if self._latest_data_df is None: return None
+        not_na = ~self._latest_data_df.air.isna()
+        return self._latest_data_df.air.values[not_na][-1]
+
+    @property
+    def latest_water_temp (self):
+        if self._latest_data_df is None: return None
+        not_na = ~self._latest_data_df.water.isna()
+        return self._latest_data_df.water.values[not_na][-1]
+
+    @property
+    def latest_air_pressure (self):
+        if self._latest_data_df is None: return None
+        not_na = ~self._latest_data_df.pressure.isna()
+        return self._latest_data_df.pressure.values[not_na][-1]
+
+    @property
+    def latest_wind_speed (self):
+        if self._latest_data_df is None: return None
+        not_na = ~self._latest_data_df.wind_speed.isna()
+        return self._latest_data_df.wind_speed.values[not_na][-1]
+
+    @property
+    def latest_wind_cardinal (self):
+        if self._latest_data_df is None: return None
+        not_na = ~self._latest_data_df.wind_cardinal.isna()
+        return self._latest_data_df.wind_cardinal.values[not_na][-1]
+
+    @property
+    def latest_gust_speed (self):
+        if self._latest_data_df is None: return None
+        not_na = ~self._latest_data_df.gust_speed.isna()
+        return self._latest_data_df.gust_speed.values[not_na][-1]
+
+    @property
+    def latest_gust_cardinal (self):
+        return self.latest_wind_cardinal
 
     # +------------------------------------------------------------
     # | Handle different products
@@ -125,6 +188,14 @@ class met (product.product):
         aproduct.markersize = self._markersize
         aproduct.fontsize = self._fontsize
 
+        if product_name == 'temperature':
+            aproduct.tube_scale = TEMP_TUBE_SCALE
+            aproduct.tube_height = TEMP_TUBE_HEIGHT 
+            aproduct.bulb_radius = TEMP_BULB_RADIUS
+            aproduct.scale_pad = TEMP_SCALE_PAD
+            aproduct.air_thermo_pos = TEMP_AIR_THERMO_POS
+            aproduct.water_thermo_pos = TEMP_WATER_THERMO_POS
+
         return aproduct
 
     def define_products (self):
@@ -149,11 +220,11 @@ class met (product.product):
         self._air_pressure.now = self._now
 
         ## Load individual data
-        #  1. Wind: ['wind', 'degN', 'wind_cardinal', 'gust', 'radius', 'theta', 'gust_cardinal']
+        #  1. Wind: ['wind', 'degN', 'wind_cardinal', 'gust', 'radius', 'theta']
         self._wind._load_data()
         wind_df = self._wind._latest_data_df 
-        wind_df = wind_df.drop (axis=1, columns=['gust', 'gust_cardinal'])
-        wind_df.columns = ['wind_speed', 'wind_direction', 'wind_cardinal', 'wind_radius', 'wind_theta']
+        wind_df.columns = ['wind_speed', 'wind_direction', 'wind_cardinal',
+                           'gust_speed', 'wind_radius', 'wind_theta']
         #  2. Temperature: ['air', 'water', 'air_height', 'water_height']
         self._temperature._load_data()
         temp_df = self._temperature._latest_data_df
@@ -200,7 +271,7 @@ class met (product.product):
                 text += ' (' + value_fmt.format (value) + '$^\circ$C)'
             if not isinstance (value, str) and not np.isfinite (value):
                 value_fmt, value = '{0}', 'n/a'
-            axis.annotate (text, (0, index), color='black', fontsize=self._fontsize-10)
+            axis.annotate (text, (0, index), color='black', fontsize=self._fontsize-6)
 
         ## Format axis
         axis.set_ylim ([0, len (MET_LEGEND)])
@@ -213,9 +284,9 @@ class met (product.product):
         if df is None: raise IOError ("Please load data before plotting.")
         
         ## Create a huuuge canvas with 2 subplots.
-        fig = plt.figure(figsize=self.fig_size)
-        gs = gridspec.GridSpec (ncols=2, nrows=1, width_ratios=[3, 1])
-        gs.update (wspace=0.03)
+        fig = plt.figure(figsize=self.fig_size, dpi=DPI)
+        gs = gridspec.GridSpec (ncols=3, nrows=1, width_ratios=[2, 0.5, 1])
+        gs.update (wspace=0.3)
 
         ## Left: wind and pressure
         subgs = gs[0].subgridspec (2, 1, height_ratios=[1, 1])
@@ -229,7 +300,7 @@ class met (product.product):
         self._air_pressure._create_a_barometer_on_main_axis (axis, pressure_thetas)
 
         ## Right: temperature and legend
-        subgs = gs[1].subgridspec (2, 1, height_ratios=[3, 1])
+        subgs = gs[2].subgridspec (2, 1, height_ratios=[2.5, 1])
         #  Top: temperature
         axis = fig.add_subplot(subgs[0])
         ylimits = [self._temperature.min_temp-5, self._temperature.max_temp+5]
@@ -244,7 +315,7 @@ class met (product.product):
         self._write_legend (axis, at_dot)
 
         ## Format title / layout
-        plt.savefig(self._plot_path + '/' + dot_time.strftime ('%Y%m%d%H%M') + '.jpg')
+        plt.savefig(self._plot_path + '/' + dot_time.strftime ('%Y%m%d%H%M') + '.jpg', dpi=DPI)
         
         ## Properly close the window for the next plot
         plt.close ('all')
@@ -317,7 +388,7 @@ class met (product.product):
         ## Generate each time step until the last observation point
         doMetric = True # Start with English
         end_time = self.latest_obs_time
-        timestamps = list (self._latest_data_df.iloc[::4, :].index) + [end_time]
+        timestamps = list (self._latest_data_df.iloc[::10, :].index) + [end_time]
         for index, dot_time in enumerate (sorted (timestamps)):
             # If there is no more valid observation points, exit the loop
             if dot_time > end_time: break

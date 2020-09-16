@@ -23,15 +23,16 @@
 ###############################################
 ## Import libraries
 ###############################################
-import requests, pytz, glob, os
+import requests, pytz, glob, os, sys
 import numpy as np
 import pandas as pd
 import datetime as dt
 
+sys.path.append('C:\\Users\\elim.thompson\\Documents\\ddp\\webapp\\plotter\\')
 import product
 
 import matplotlib
-matplotlib.use ('TkAgg')
+matplotlib.use ('Agg')
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -43,6 +44,9 @@ plt.rc ('font', serif='Computer Modern Roman')
 ###############################################
 ## Define constants
 ###############################################
+## Monitor dpi
+DPI = product.DPI
+
 ## Time format for display
 TIME_FORMAT = '%m/%d/%Y %I:%M %p'
 
@@ -79,7 +83,7 @@ class wind (product.product):
         ## Wind polar plot parameters - FIXED!
         self._rscale = WIND_RSCALE 
         self._rboard = WIND_RSCALE + 10 # dart board is slightly larger
-        self._rticks = np.linspace (0, self._rscale, 6)[1:] # 6 ticks along radius
+        self._rticks = np.linspace (0, self._rscale, 4)[1:] # 4 ticks along radius
 
         ## Theta axis parameters
         self._tticks = WIND_XTICKS
@@ -89,7 +93,8 @@ class wind (product.product):
         self._colorarrow = 'Blue'
         self._colormap = cm.Blues
         self._needle_style = "fancy,head_length=10,head_width=5,tail_width=20"
-        self._arrow_style  = "fancy,head_length=28,head_width=40,tail_width=20"
+        #self._arrow_style  = "fancy,head_length=28,head_width=40,tail_width=20"
+        self._arrow_style  = "fancy,head_length=20,head_width=30,tail_width=15"        
 
     def __repr__ (self):
         pass
@@ -116,16 +121,14 @@ class wind (product.product):
         return self._latest_data_df.gust.values[not_na][-1]
 
     @property
-    def latest_wind_direction (self):
+    def latest_wind_cardinal (self):
         if self._latest_data_df is None: return None
         not_na = ~self._latest_data_df.wind_cardinal.isna()
         return self._latest_data_df.wind_cardinal.values[not_na][-1]
 
     @property
-    def latest_gust_direction (self):
-        if self._latest_data_df is None: return None
-        not_na = ~self._latest_data_df.gust_cardinal.isna()
-        return self._latest_data_df.gust_cardinal.values[not_na][-1]
+    def latest_gust_cardinal (self):
+        return self.latest_wind_cardinal
 
     # +------------------------------------------------------------
     # | Collect & handle wind data
@@ -149,8 +152,8 @@ class wind (product.product):
     def _normalize_wind_speed (self, df):
 
         wmin = 0
-        wmax = df.wind.max()
-        return (df.wind - wmin) / (wmax - wmin) * self._rscale
+        wmax = df.wind_speed.max()
+        return (df.wind_speed - wmin) / (wmax - wmin) * self._rscale
 
     def _load_data (self):
 
@@ -161,19 +164,17 @@ class wind (product.product):
         ## Get 6-min observation time-series: t, s, d, dr, g
         obs_df = self._load_latest()
         obs_df = obs_df.drop(axis=1, columns=['f'])
-        obs_df.columns = ['wind', 'degN', 'wind_cardinal', 'gust']
+        obs_df.columns = ['wind_speed', 'wind_direction', 'wind_cardinal', 'gust_speed']
 
         ## Go through each column to convert them to float type
-        obs_df['wind'] = obs_df.wind.astype (float)
-        obs_df['degN'] = obs_df.degN.astype (float)
-        obs_df['gust'] = obs_df.gust.astype (float)
+        obs_df['wind_speed'] = obs_df.wind_speed.astype (float)
+        obs_df['wind_direction'] = obs_df.wind_direction.astype (float)
+        obs_df['gust_speed'] = obs_df.gust_speed.astype (float)
 
         ## Convert wind speed & direction to polar coordinate
         obs_df['radius'] = self._normalize_wind_speed (obs_df)
-        obs_df['theta'] = [self._convert_angle (theta) for theta in obs_df.degN]
-
-        ## Include cardinal direction for gust
-        obs_df['gust_cardinal'] = self._get_cardinal_direction (obs_df.gust)
+        obs_df['theta'] = [self._convert_angle (theta)
+                           for theta in obs_df.wind_direction]
 
         ## Store it as internal variable
         self._latest_data_df = obs_df
@@ -188,14 +189,14 @@ class wind (product.product):
         #  1. Unit for this plot
         runit = 'kts'
         #  2. Radius ticks from 0 knots to the maximum speed in the data
-        rticklabels = [y / self._rscale * df.wind.max() for y in self._rticks]
+        rticklabels = [y / self._rscale * df.wind_speed.max() for y in self._rticks]
         #     Format it with 1 decimal places
         rticklabels = ['{0:.1f}'.format (r) for r in rticklabels]
 
         ## Collect data to be plotted - last 10 timestamps up to dot time
         before_dot = df[df.index <= dot_time].tail (10)
-        radii = before_dot.radius.values
-        thetas = before_dot.theta.values
+        radii = before_dot.wind_radius.values
+        thetas = before_dot.wind_theta.values
 
         ## 1. Plot previous winds
         #  Define arrow style based on user inputs
@@ -211,25 +212,17 @@ class wind (product.product):
             # Draw the arrow
             arrow = matplotlib.patches.FancyArrowPatch((0, 0), (theta, radius),
                         arrowstyle=arrowstyle, color=color)
-            axis.add_patch(arrow)   
-        
-        ## 2. Plot wind arrow at dot time if it is valid
-        radius = before_dot.radius.values[-1]
-        theta  = before_dot.theta.values[-1]
-        if np.isfinite (radius) and np.isfinite (theta): 
-            arrow = matplotlib.patches.FancyArrowPatch((0, 0), (theta, radius),
-                arrowstyle=arrowstyle, color=self._colorarrow, alpha=1.0)
-            axis.add_patch(arrow)
+            axis.add_patch(arrow)  
         
         ## Format theta axis in circular direction (i.e. x-axis)
         #  1. Remove the outer most circle axis
         axis.spines["polar"].set_visible(False)
         #  2. Set and label tick marks with angles
         axis.set_thetagrids (self._tticks*180/np.pi, labels=self._tticklabels,
-                             fontsize=self._fontsize)
-        axis.tick_params (axis='x', width=2, length=10, pad=15)
+                             fontsize=self._fontsize-5)
+        axis.tick_params (axis='x', width=2, length=10, pad=5)
         #  3. 
-        axis.xaxis.grid(True, color='black', linestyle='-', linewidth=1)
+        axis.xaxis.grid(True, color='k', linestyle='-', linewidth=1, alpha=0.7)
 
         ## Format axis along radial direction (i.e. y-axis)
         ## 1. Set limits in radius
@@ -246,6 +239,14 @@ class wind (product.product):
         #  4.  
         axis.yaxis.grid (True, color='black', linestyle=':', linewidth=0.7, alpha=0.6)
         
+        ## 2. Plot wind arrow at dot time if it is valid
+        radius = before_dot.wind_radius.values[-1]
+        theta  = before_dot.wind_theta.values[-1]
+        if np.isfinite (radius) and np.isfinite (theta): 
+            arrow = matplotlib.patches.FancyArrowPatch((0, 0), (theta, radius),
+                arrowstyle=arrowstyle, color=self._colorarrow, alpha=1.0)
+            axis.add_patch(arrow)
+
         return axis
 
     def _write_wind_legend (self, axis, at_dot):
@@ -256,10 +257,9 @@ class wind (product.product):
             # Get value in English
             value_fmt = '{0:.2f}' if 'speed' in llabel else \
                         '{0:3}' if 'direction' in llabel else '{0}'
-            value = at_dot.wind.values[0] if llabel == 'wind speed' else \
-                    at_dot.gust.values[0] if llabel == 'gust speed' else \
-                    at_dot.wind_cardinal.values[0] if llabel == 'wind direction' else \
-                    at_dot.gust_cardinal.values[0] if llabel == 'gust direction' else \
+            value = at_dot.wind_speed.values[0] if llabel == 'wind speed' else \
+                    at_dot.gust_speed.values[0] if llabel == 'gust speed' else \
+                    at_dot.wind_cardinal.values[0] if 'direction' in llabel else \
                     at_dot.index[0].strftime (TIME_FORMAT)
             text = label + ': ' + value_fmt.format (value) + ' kts'
             # For speed, add in value in Metric
@@ -272,7 +272,7 @@ class wind (product.product):
         axis.set_ylim ([0, len (WIND_LEGEND)*2.5])
         axis.axis ('off')
 
-    def _generate_one_plot (self, dot_time, doMetric=False, doNeedle=False):
+    def _generate_one_plot (self, dot_time, doNeedle=False):
         
         ## Make sure data is available
         if self._latest_data_df is None:
@@ -285,13 +285,13 @@ class wind (product.product):
 
         ## Right: Polar plot
         axis = fig.add_subplot(gs[0], polar=True)
-        self._create_wind_rose (axis, dot_time, doNeedle=doNeedle, doMetric=doMetric)
+        self._create_wind_rose (axis, dot_time, doNeedle=doNeedle)
         axis.set_title('Wind', fontsize=self._fontsize*3, loc='left')
 
         ## Left: Regular cartesian for text box
         axis = fig.add_subplot(gs[1])
         at_dot = self._latest_data_df[self._latest_data_df.index == dot_time].tail (1)
-        self._write_wind_legend (axis, at_dot, doMetric=doMetric)
+        self._write_wind_legend (axis, at_dot)
 
         ## Format title / layout
         plt.savefig(self._plot_path + '/' + dot_time.strftime ('%Y%m%d%H%M') + '.jpg')
@@ -315,16 +315,13 @@ class wind (product.product):
 
         ## Generate every other time step until the last observation point
         ## Toggle from m/sec to knots and back every N frames
-        doMetric = True # Start with knots
         end_time = self.latest_obs_time
-        timestamps = list (self._latest_data_df.iloc[::4, :].index) + [end_time]
+        timestamps = list (self._latest_data_df.iloc[::10, :].index) + [end_time]
         for index, dot_time in enumerate (sorted (timestamps)):
             # If there is no more valid observation points, exit the loop
             if dot_time > end_time: break
-            # Toggle units
-            if index % self._toggle_units_freq == 0: doMetric = not doMetric
             # Generate the plot for this time stamp
-            self._generate_one_plot (dot_time, doMetric=doMetric, doNeedle=doNeedle)
+            self._generate_one_plot (dot_time, doNeedle=doNeedle)
 
         ## Create gif
         self._make_gif()

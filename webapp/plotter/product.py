@@ -30,7 +30,7 @@ import datetime as dt
 from PIL import Image, ImageDraw
 
 import matplotlib
-matplotlib.use ('TkAgg')
+matplotlib.use ('Agg')
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -73,10 +73,11 @@ GIF_TOTAL_DURATION_SEC = 3 ## Total duration in sec for the plot
 TOGGLE_UNITS_FREQ      = 1000 ## Super large to have no toggling
 
 ## For plotting style
-FIG_SIZE = (45, 22)
-FONTSIZE = 40 
-MARKERSIZE = 360 
-LINEWIDTH = 4
+DPI = 96
+FIG_SIZE = (1400/DPI, 1000/DPI)
+FONTSIZE = 17
+MARKERSIZE = 100
+LINEWIDTH = 5
 XTICKLABEL_TIME_FORMAT = '%m-%d %H'
 XTICKLABEL_HOURS = np.linspace (0, 22, 12)
 N_YTICKS = 8
@@ -434,7 +435,8 @@ class product (object):
         dataframe = dataframe.drop (axis=1, columns='t')
         return dataframe
 
-    def _load_latest (self, is_hilo=False, is_predictions=False, product_name=None):
+    def _load_latest (self, is_hilo=False, is_predictions=False, product_name=None,
+                      begin_date=None, end_date=None):
 
         ## Flags are only valid if this product is water level
         if self.is_met and (is_hilo or is_predictions):
@@ -443,11 +445,13 @@ class product (object):
         if is_hilo: is_predictions = True
 
         ## Define parameters for API
+        interval = 'hilo' if is_hilo else '1' if is_predictions else '6'
         if product_name is None:
             product_name = 'predictions' if is_predictions else self.product_name
-        interval = 'hilo' if is_hilo else '1' if is_predictions else '6'
-        begin_date = self._now - dt.timedelta (hours=self._hours_pad[0])
-        end_date   = self._now + dt.timedelta (hours=self._hours_pad[1])
+        if begin_date is None:
+            begin_date = self._now - dt.timedelta (hours=self._hours_pad[0])
+        if end_date is None:
+            end_date   = self._now + dt.timedelta (hours=self._hours_pad[1])
 
         ## Pull latest data around now
         content = self._pull_data (product_name, interval, 
@@ -522,16 +526,22 @@ class product (object):
         ## Output gif to assets folder
         gif_file = self.assets_path + '/' + self.product_name + '.gif'
 
-        ## Gather all frames
-        frames = [Image.open (img_file) for img_file in img_files]
+        ## Gather all frames and make sure files are all properly closed.
+        frames = []
+        for img_file in img_files:
+            with open (img_file, 'rb') as f:
+                image = Image.open(f)
+                frames.append (image.copy())
+            image.close()
+            f.close()
 
         ## If don't do animation, store the last frame as '.gif' for
         ## consistency with webapp code.
         if not self.do_animation:
-            frames[-1].save (gif_file, format='GIF')
-            return
+           frames[-1].save (gif_file, format='GIF')
+           return
 
-        ## Calculate time (ms) per frame
+        # Calculate time (ms) per frame
         duration_ms = self.gif_total_duration_sec / len (frames) * 1000
 
         frames[0].save (gif_file, format='GIF', append_images=frames[1:],

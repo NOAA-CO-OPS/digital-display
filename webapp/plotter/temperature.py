@@ -23,15 +23,16 @@
 ###############################################
 ## Import libraries
 ###############################################
-import requests, pytz, glob, os
+import requests, pytz, glob, os, sys
 import numpy as np
 import pandas as pd
 import datetime as dt
 
+sys.path.append('C:\\Users\\elim.thompson\\Documents\\ddp\\webapp\\plotter\\')
 import product
 
 import matplotlib
-matplotlib.use ('TkAgg')
+matplotlib.use ('Agg')
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -43,6 +44,9 @@ plt.rc ('font', serif='Computer Modern Roman')
 ###############################################
 ## Define constants
 ###############################################
+## Monitor dpi
+DPI = product.DPI
+
 ## Time format for display
 TIME_FORMAT = '%m/%d/%Y %I:%M %p'
 CURRENT_TIME_LABEL = 'Current Time'
@@ -53,12 +57,14 @@ XTICKLABEL_HOURS = product.XTICKLABEL_HOURS
 N_YTICKS = product.N_YTICKS
 
 ## For temperature
+TEMP_BULB_RADIUS = 6
 TEMP_TUBE_SCALE = 60
 TEMP_TUBE_HEIGHT = TEMP_TUBE_SCALE + 3 # Tube is slightly taller
 #  Position of air and water thermometer on time-series plot
 #  [x-coordinate (lower left), y-coordinate (lower left), width, height]
-TEMP_AIR_THERMO_POS = [0, 0.0, 0.4, 1]
+TEMP_AIR_THERMO_POS = [0.0, 0.0, 0.4, 1]
 TEMP_WATER_THERMO_POS = [0.5, 0.0, 0.4, 1]
+TEMP_SCALE_PAD = 20
 
 ###############################################
 ## Define short lambda functions
@@ -76,9 +82,12 @@ class temperature (product.product):
 
         super().__init__('temperature')
 
-        ## Thermometer parameters - FIXED!
+        ## Thermometer parameters
         self._tube_scale = TEMP_TUBE_SCALE
         self._tube_height = TEMP_TUBE_HEIGHT
+        self._bulb_radius = TEMP_BULB_RADIUS
+        self._scale_pad = TEMP_SCALE_PAD
+
         #  For time-series plot specifically
         self._air_thermo_pos = TEMP_AIR_THERMO_POS
         self._water_thermo_pos = TEMP_WATER_THERMO_POS
@@ -119,6 +128,70 @@ class temperature (product.product):
     def max_temp (self):
         if self._latest_data_df is None: return None
         return self._latest_data_df.loc[:, ['air', 'water']].max().max()
+
+    @property
+    def tube_scale (self): return self._tube_scale
+    @tube_scale.setter
+    def tube_scale (self, number):
+        ## Make sure input is a number
+        self._check_is_number (number)
+        ## Make sure this number is 0 or positive
+        if number < 0:
+            raise IOError ('Tube Scale must be >= 0.')
+        self._tube_scale = number
+
+    @property
+    def tube_height (self): return self._tube_height
+    @tube_height.setter
+    def tube_height (self, number):
+        ## Make sure input is a number
+        self._check_is_number (number)
+        ## Make sure this number is 0 or positive
+        if number < 0:
+            raise IOError ('Tube Height must be >= 0.')
+        self._tube_height = number
+
+    @property
+    def bulb_radius (self): return self._bulb_radius
+    @bulb_radius.setter
+    def bulb_radius (self, number):
+        ## Make sure input is a number
+        self._check_is_number (number)
+        ## Make sure this number is 0 or positive
+        if number < 0:
+            raise IOError ('Bulb radius must be >= 0.')
+        self._bulb_radius = number
+
+    @property
+    def scale_pad (self): return self._scale_pad
+    @scale_pad.setter
+    def scale_pad (self, number):
+        ## Make sure input is a number
+        self._check_is_number (number)
+        ## Make sure this number is 0 or positive
+        if number < 0:
+            raise IOError ('Padding between tick and scale must be >= 0.')
+        self._scale_pad = number
+
+    @property
+    def air_thermo_pos (self): return self._air_thermo_pos
+    @air_thermo_pos.setter
+    def air_thermo_pos (self, array):
+        ## Make sure input is a number array with 4 values
+        self._check_is_array (array, length=4)
+        ## Make sure the elements are numbers
+        for elem in array: self._check_is_number (elem)        
+        self._air_thermo_pos = array
+
+    @property
+    def water_thermo_pos (self): return self._water_thermo_pos
+    @water_thermo_pos.setter
+    def water_thermo_pos (self, array):
+        ## Make sure input is a number array with 4 values
+        self._check_is_array (array, length=4)
+        ## Make sure the elements are numbers
+        for elem in array: self._check_is_number (elem)        
+        self._water_thermo_pos = array
 
     # +------------------------------------------------------------
     # | Collect & handle temp data
@@ -271,14 +344,16 @@ class temperature (product.product):
             axis.set_yticklabels (ylabels, fontsize=self._fontsize-7)
             # Format the spine line and ticks
             axis.spines['left'].set_linewidth(3)
-            axis.tick_params(axis='y', width=2, length=10, pad=20)
+            axis.tick_params(axis='y', width=2, length=10, pad=self._scale_pad)
         else:
             # Do not show left spine
             axis.yaxis.set_ticks([])
             axis.spines['left'].set_color('none') 
                 
-        ## Draw the tube as a patch, with round corners, aligned with bulb's center  
-        tube = matplotlib.patches.FancyBboxPatch ((-3.5,0), 7, self._tube_height,
+        ## Draw the tube as a patch, with round corners, aligned with bulb's center
+        tube_width = self._bulb_radius + 1
+        tube_loc = (-1 *tube_width / 2, 0)
+        tube = matplotlib.patches.FancyBboxPatch (tube_loc, tube_width, self._tube_height,
                         linewidth=3, edgecolor=color, facecolor='none',
                         boxstyle="round,pad=0,rounding_size=3.5",
                         capstyle='round', joinstyle="round")
@@ -286,7 +361,7 @@ class temperature (product.product):
         axis.add_patch (tube)
 
         ## Draw the bulb as a patch centered at (0, 0) 
-        circle = plt.Circle ((0, 0), radius=6, color=color)
+        circle = plt.Circle ((0, 0), radius=self._bulb_radius, color=color)
         axis.add_patch (circle)
         
         ## Write temp type in the bulb with shadow
@@ -297,9 +372,9 @@ class temperature (product.product):
                         ha="center", va="center", color='black')
         
         ## Fill in data in tube with data at dot-time
-        if height is not None:
+        if np.isfinite (height):
             #     Create a new tube up to the current temperature
-            tube = matplotlib.patches.FancyBboxPatch ((-3.5,0), 7, height,
+            tube = matplotlib.patches.FancyBboxPatch (tube_loc, tube_width, height,
                             linewidth=3, facecolor=color, edgecolor=color)
             axis.add_patch (tube)
 
@@ -315,8 +390,8 @@ class temperature (product.product):
         yunit = '$^\circ$C' if doMetric else '$^\circ$F'
         
         ## Create a huuuge canvas with 2 subplots.
-        fig = plt.figure(figsize=self.fig_size)
-        gs = gridspec.GridSpec (ncols=2, nrows=1, width_ratios=[3, 1])
+        fig = plt.figure(figsize=self.fig_size, dpi=DPI)
+        gs = gridspec.GridSpec (ncols=2, nrows=1, width_ratios=[3, 1], bottom=0.15, top=0.85)
         gs.update (top=0.8)
 
         ## Left: Time-series plot
@@ -340,7 +415,7 @@ class temperature (product.product):
 
         ## Format title / layout
         plt.savefig(self._plot_path + '/' + dot_time.strftime ('%Y%m%d%H%M') + '.jpg',
-                    bbox_extra_artists=(lgd,))
+                    bbox_extra_artists=(lgd,), dpi=DPI)
         
         ## Properly close the window for the next plot
         plt.close ('all')
@@ -363,7 +438,7 @@ class temperature (product.product):
         ## Toggle from degF to degC and back every N frames
         doMetric = True # Start with knots
         end_time = self.latest_obs_time
-        timestamps = list (self._latest_data_df.iloc[::4, :].index) + [end_time]
+        timestamps = list (self._latest_data_df.iloc[::10, :].index) + [end_time]
         for index, dot_time in enumerate (sorted (timestamps)):
             # If there is no more valid observation points, exit the loop
             if dot_time > end_time: break
