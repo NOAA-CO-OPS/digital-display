@@ -1,0 +1,1 @@
+This is a plots subfolder. Parent class (product.py) will create the sub-folders in this plots/ for different products
