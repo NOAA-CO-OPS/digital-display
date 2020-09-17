@@ -19,6 +19,16 @@ conda activate ddp
 ```	
 4. download all mp4 / gif from [webbapp_content_for_test Google folder](https://drive.google.com/drive/folders/1H20lAG-23YuuaqrZyWKHD39qFWGU4E4W?usp=sharing) to digital-display/webapp/assets/
 
+### To pull the latest updates to the GitHub repository
+1.  Open Git Bash
+2.  Change directories to the digital-display repository folder on your local computer (*remember that Git Bash only accepts FORWARD slashes)
+3.  Enter 'git pull origin master'
+
+### To update your virtual environment
+1.  Open your favorite prompt window and navigate to the digital-display folder
+2.  Activate the virtual environment: conda activate ddp
+3.  Update the environment by entering: conda env update --file environment.yml  
+
 ### When you start working on ddp
 
 #### Start generating GIFs
