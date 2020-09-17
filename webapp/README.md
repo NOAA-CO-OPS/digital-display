@@ -27,7 +27,7 @@ conda activate ddp
 ### To update your virtual environment
 1.  Open your favorite prompt window and navigate to the digital-display folder
 2.  Activate the virtual environment: conda activate ddp
-3.  Update the environment by entering: conda env update --file environment.yml  
+3.  Update the environment by entering: pip install -r requirement.txt  
 
 ### When you start working on ddp
 
