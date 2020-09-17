@@ -105,20 +105,20 @@ class wind (product.product):
     @property
     def latest_obs_time (self):
         if self._latest_data_df is None: return None
-        not_na = ~self._latest_data_df.wind.isna()
-        return self._latest_data_df.wind.index[not_na][-1]
+        not_na = ~self._latest_data_df.wind_speed.isna()
+        return self._latest_data_df.wind_speed.index[not_na][-1]
 
     @property
     def latest_wind_speed (self): 
         if self._latest_data_df is None: return None
-        not_na = ~self._latest_data_df.wind.isna()
-        return self._latest_data_df.wind.values[not_na][-1]
+        not_na = ~self._latest_data_df.wind_speed.isna()
+        return self._latest_data_df.wind_speed.values[not_na][-1]
 
     @property
     def latest_gust_speed (self):
         if self._latest_data_df is None: return None
-        not_na = ~self._latest_data_df.gust.isna()
-        return self._latest_data_df.gust.values[not_na][-1]
+        not_na = ~self._latest_data_df.gust_speed.isna()
+        return self._latest_data_df.gust_speed.values[not_na][-1]
 
     @property
     def latest_wind_cardinal (self):
@@ -172,8 +172,8 @@ class wind (product.product):
         obs_df['gust_speed'] = obs_df.gust_speed.astype (float)
 
         ## Convert wind speed & direction to polar coordinate
-        obs_df['radius'] = self._normalize_wind_speed (obs_df)
-        obs_df['theta'] = [self._convert_angle (theta)
+        obs_df['wind_radius'] = self._normalize_wind_speed (obs_df)
+        obs_df['wind_theta'] = [self._convert_angle (theta)
                            for theta in obs_df.wind_direction]
 
         ## Store it as internal variable

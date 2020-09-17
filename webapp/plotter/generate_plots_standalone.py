@@ -18,7 +18,7 @@ met.assets_path = '../assets/'
 met.now = now
 met.create_gif (doWindNeedle=False, three_columns=False)
 
-## Initialize pressure product
+# Initialize pressure product
 pressure_product = air_pressure ()
 pressure_product.plot_path = 'plots/pressures/'
 pressure_product.assets_path = '../assets/'
