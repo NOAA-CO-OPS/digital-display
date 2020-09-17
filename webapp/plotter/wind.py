@@ -261,12 +261,12 @@ class wind (product.product):
                     at_dot.gust_speed.values[0] if llabel == 'gust speed' else \
                     at_dot.wind_cardinal.values[0] if 'direction' in llabel else \
                     at_dot.index[0].strftime (TIME_FORMAT)
-            text = label + ': ' + value_fmt.format (value) + ' kts'
+            text = label + ': ' + value_fmt.format (value) 
             # For speed, add in value in Metric
             if 'speed' in llabel:
                 value = convert_knots_to_mPerSec (value)
-                text += ' (' + value_fmt.format (value) + ' m/s)'
-            axis.annotate (text, (0, index), color='black', fontsize=self._fontsize)
+                text += ' kts (' + value_fmt.format (value) + ' m/s)'
+            axis.annotate (text, (0, index), color='black', fontsize=self._fontsize*0.8)
 
         ## Format axis
         axis.set_ylim ([0, len (WIND_LEGEND)*2.5])

@@ -54,6 +54,10 @@ def create_gifs ():
 
 if __name__ == '__main__':
 
+    ## Create the latest GIFs when this script is called
+    create_gifs()
+
+    ## Create GIFs every 6 minutes afterwards
     schedule.every(6).minutes.do(create_gifs)
 
     while 1:
