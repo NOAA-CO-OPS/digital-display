@@ -1,6 +1,6 @@
 This folder contains the scripts for the web application.
 
-Initial version of micro web uses python Flask & Dash (hybridapp.py). A local host webpage automatically cycle through several plots from home (video), to water level (GIF), to sea level trend (video), to MET (GIF) and back to home (video). Currently, I am using a short intro and sea-level-trned videos from DDP Google folder. For the GIFs, a separate python script (plotter/run_plot_schedule.py) is written to generate GIFs every 6 minutes using the different product sub-classes.
+Initial version of micro web uses python Flask & Dash (hybridapp.py). A local host webpage automatically cycle through several plots from home (video), to water level (GIF), to sea level trend (video), to MET (GIF) and back to home (video). Currently, I am using a short intro and sea-level-trend videos from DDP Google folder. For the GIFs, a separate python script (plotter/run_plot_schedule.py) is written to generate GIFs every 6 minutes using the different product sub-classes.
 
 ### Preparation
 
