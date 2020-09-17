@@ -27,8 +27,7 @@ import requests, pytz, glob, os, sys
 import numpy as np
 import pandas as pd
 import datetime as dt
-sys.path.append('C:\\Users\\elim.thompson\\Documents\\ddp\\webapp\\plotter\\')
-import product
+from . import product
 
 import matplotlib
 matplotlib.use ('Agg')
@@ -178,7 +177,15 @@ class water_level (product.product):
         axis.plot(df.index.values, df.predicted.values, color='blue',
                   label='Predicted', linewidth=self._linewidth)
 
-        # 2. Show all predicted high / lows with H / L markers
+        # 2. Plot standard observed time-series
+        ylimits = [df.min().min()-0.4, df.max().max()+0.4]
+        yticks = np.linspace (ylimits[0], ylimits[1], N_YTICKS)
+        yticklabels = convert_feet_to_meters (yticks) if doMetric else yticks 
+        ylabel = 'Water level ({0}) above MLLW'.format (yunit)
+        self._plot_obs_time_series (axis, df, dot_time, ylimits, yticks,
+                                    yticklabels, ylabel, do_1_decimal_place=False)
+
+        # 3. Show all predicted high / lows with H / L markers
         for etype in ['H', 'L']:
             xvalues = df[df.event==etype].index
             yvalues = df[df.event==etype].predicted_hilo
@@ -192,14 +199,6 @@ class water_level (product.product):
                                color='blue', fontsize=self._fontsize,
                                horizontalalignment='center',
                                verticalalignment=verticalalignment)
-
-        # 3. Plot standard observed time-series
-        ylimits = [df.min().min()-0.4, df.max().max()+0.4]
-        yticks = np.linspace (ylimits[0], ylimits[1], N_YTICKS)
-        yticklabels = convert_feet_to_meters (yticks) if doMetric else yticks 
-        ylabel = 'Water level ({0}) above MLLW'.format (yunit)
-        self._plot_obs_time_series (axis, df, dot_time, ylimits, yticks,
-                                    yticklabels, ylabel, do_1_decimal_place=False)
 
         # 10. Format title / layout
         axis.set_title('Water Level', fontsize=self._fontsize*3, loc='left', pad=37)
