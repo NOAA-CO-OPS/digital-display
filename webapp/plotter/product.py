@@ -5,11 +5,10 @@
 ## Modified by Elim Thompson 09/09/2020
 ##
 ## This script is only a class and should not be called by itself. To use
-## this library, check out plot_data.py
+## this library, check out generate_plot_standalone.py
 ##
-## Julia's original script ddp_plots.py:
-## This script contains functions to generate water level, temperature, wind,
-## pressure plots and to concatenate them into GIF. 
+## Julia's original script, ddp_plots.py, contains functions to generate water
+## level, temperature, wind, pressure plots and to concatenate them into GIF. 
 ##  * water level: time-series with prediction and observation
 ##  * temperature: both water and air temp as time-series and thermometers
 ##  * wind       : polar plot (i.e. no time-series)
@@ -18,6 +17,27 @@
 ## Elim's modification:
 ##  * Turned ddp_plots.py into a product and their children classes
 ##  * Added ability to do both time-series + object and object alone
+##  * Included a MET product to group temp, wind, pressure together
+##
+## Example snippet to use data_cleaner class
+## +------------------------------------------------------------------
+## # Initialize a new product class
+## import product
+## product_name = 'water_level'
+## aproduct = product.product(product_name)
+##
+## # Set up the paths for individual plots
+## aproduct.plot_path = 'plots/pressures/'
+## # Set up the paths for animated GIF
+## aproduct.assets_path = '../assets/'
+##
+## # Set up "current time"
+## import datetime, pytz
+## aproduct.now = datetime.datetime.now (pytz.timezone('US/Pacific'))
+##
+## # Generate GIF with the latest data on API
+## aproduct.create_gif ()
+## +------------------------------------------------------------------
 ##############################################################################
 
 ###############################################
@@ -34,7 +54,6 @@ matplotlib.use ('Agg')
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-from matplotlib.colors import LightSource
 plt.rc ('text', usetex=False)
 plt.rc ('font', family='sans-serif')
 plt.rc ('font', serif='Computer Modern Roman')
@@ -42,12 +61,12 @@ plt.rc ('font', serif='Computer Modern Roman')
 ###############################################
 ## Define constants
 ###############################################
-## Product query from the API
+## Acceptable product name
 PRODUCT_NAMES = ['water_level', 'temperature', 'air_pressure', 'wind', 'met']
 
 ## API template
 ##  * at Santa Monica 9410840
-##  * local time LST
+##  * local time LST/DST
 ##  * in English unit (feet, degF)
 ##  * in JSON for python dictionary
 ##  * water level at MLLW
@@ -59,34 +78,38 @@ API = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?" + \
 ## Time zone of Santa Monica
 STATION_TIME_ZONE = 'US/Pacific'
 
-## Time format for display
+## General current time label / format for display
+#  "current time" means the most recent data time
 TIME_FORMAT = '%m/%d/%Y %I:%M %p'
 CURRENT_TIME_LABEL = 'Current Time'
 
-## Number of hours before (for met) and after (for WL pred) now to pull
+## Number of hours before and after current time for data pulling and plotting
 HOURS_PAD_BEFORE = 12
 HOURS_PAD_AFTER = 3
 
 ## GIF formatting
-GIF_LOOP = 1               ## Loop once only. 0 for infinite loop
-GIF_TOTAL_DURATION_SEC = 3 ## Total duration in sec for the plot
-TOGGLE_UNITS_FREQ      = 1000 ## Super large to have no toggling
+GIF_LOOP = 1               # Loop once only. 0 for infinite loop
+GIF_TOTAL_DURATION_SEC = 3 # Total duration in sec for the plot
+TOGGLE_UNITS_FREQ = 1000   # Number of frames for unit toggling. Set it to
+                           # super large to have no toggling
 
-## For plotting style
-DPI = 96
-FIG_SIZE = (1400/DPI, 1000/DPI)
-FONTSIZE = 17
-MARKERSIZE = 100
-LINEWIDTH = 5
-XTICKLABEL_TIME_FORMAT = '%m-%d %H'
-XTICKLABEL_HOURS = np.linspace (0, 22, 12)
+## General plotting style
+DPI = 96 # Dots per inch
+FIG_SIZE = (1400/DPI, 1000/DPI) # Figure size based on dots per inch
+FONTSIZE = 17 # Font size of text 
+
+## Styling for time-series plots
 N_YTICKS = 8
+LINEWIDTH = 5
+MARKERSIZE = 100
+XTICKLABEL_TIME_FORMAT = '%m-%d %H'
+XTICKLABEL_HOURS = np.linspace (0, 22, 12) # X-ticks at even hours
 
 ## Acceptable number types
 NUMBER_TYPES = [float, int, np.float, np.float16, np.float32, np.float64,
                 np.int, np.int0, np.int8, np.int16, np.int32, np.int64]
 
-# Possible types of array
+## Acceptable array types
 ARRAY_TYPES = [list, tuple, np.ndarray]
 
 ###############################################
@@ -94,17 +117,18 @@ ARRAY_TYPES = [list, tuple, np.ndarray]
 ###############################################
 class product (object):
 
-    ''' This class encapsulates common functions for a product in DDP
-    '''
+    ''' This class encapsulates common functions for all products in DDP '''
 
     def __init__ (self, product_name):
 
         ''' To initialize a product instance '''
 
+        ## Product is initialized by a product name. 
+        ## Acceptable names are listed in PRODUCT_NAMES.
         self._check_product_name (product_name)
         self._product_name = product_name
 
-        ## Latest data storing the most recent and 6-minute data in the past
+        ## Variables storing the most recent 6-minute data
         self._now = None
         self._latest_data_df = None
         self._hours_pad = [HOURS_PAD_BEFORE, HOURS_PAD_AFTER]
@@ -116,10 +140,10 @@ class product (object):
         self._toggle_units_freq = TOGGLE_UNITS_FREQ
 
         ## Plot settings
+        self._fontsize = FONTSIZE
         self._fig_size = FIG_SIZE
         self._linewidth = LINEWIDTH
         self._markersize = MARKERSIZE
-        self._fontsize = FONTSIZE
 
         ## Plots locations
         self._plot_path = None
@@ -134,6 +158,7 @@ class product (object):
     @property
     def latest_obs (self):
         if self._latest_data_df is None: return None
+        if not 'observed' in self._latest_data_df: return None
         not_na = ~self._latest_data_df.observed.isna()
         return self._latest_data_df.observed.values[not_na][-1]
 
