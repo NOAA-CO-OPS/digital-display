@@ -102,7 +102,6 @@ class water_level (product.product):
         min_index = time_diff.argmin ()
         #  If the min difference is positive, collect 2 next tides
         #  If it is negative, collect 1 next tide
-        print ( time_diff[min_index] )
         n_before = 0 if time_diff[min_index] > 0 else 2
         n_after = 3 if time_diff[min_index] > 0 else 1
         return hilo_df.iloc[min_index-n_before:min_index+n_after, :]
