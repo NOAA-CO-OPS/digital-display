@@ -27,9 +27,7 @@ import requests, pytz, glob, os, sys
 import numpy as np
 import pandas as pd
 import datetime as dt
-
-sys.path.append('C:\\Users\\elim.thompson\\Documents\\ddp\\webapp\\plotter\\')
-import product
+from . import product
 
 import matplotlib
 matplotlib.use ('Agg')
@@ -49,6 +47,9 @@ DPI = product.DPI
 
 ## For plotting style
 N_YTICKS = product.N_YTICKS
+
+## Number of continuous bad data to trigger no-plot-shown
+N_HOURS_NULL_DATA = product.N_HOURS_NULL_DATA
 
 ## For pressure
 PRESSURE_THETA_RANGE = 270 ## bottom 90 degree is un-used
@@ -90,6 +91,10 @@ class air_pressure (product.product):
 
     def __repr__ (self):
         pass
+
+    # +------------------------------------------------------------
+    # | Getters & setters
+    # +------------------------------------------------------------
 
     # +------------------------------------------------------------
     # | Collect & handle pressure data
