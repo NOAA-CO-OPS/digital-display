@@ -28,11 +28,10 @@ import numpy as np
 import pandas as pd
 import datetime as dt
 
-sys.path.append('C:\\Users\\elim.thompson\\Documents\\ddp\\webapp\\plotter\\')
-import product
-from temperature import temperature
-from air_pressure import air_pressure
-from wind import wind
+from . import product
+from .temperature import temperature
+from .air_pressure import air_pressure
+from .wind import wind
 
 import matplotlib
 matplotlib.use ('Agg')
@@ -56,6 +55,9 @@ FIG_SIZE = (1400/DPI, 1000/DPI)
 
 ## For plotting style
 N_YTICKS = product.N_YTICKS
+
+## Number of continuous bad data to trigger no-plot-shown
+N_HOURS_NULL_DATA = product.N_HOURS_NULL_DATA
 
 ## Unit conversion factors
 FEET_TO_METERS = 1 / 3.28084
@@ -157,6 +159,17 @@ class met (product.product):
     @property
     def latest_gust_cardinal (self):
         return self.latest_wind_cardinal
+
+    @property
+    def has_all_nan (self):
+        ## If dataframe is None -> no past data
+        if self._latest_data_df is None: return False
+        ## Slice out observed data from N hours before obs time
+        begin_time = self.latest_obs_time - pd.offsets.Hour (N_HOURS_NULL_DATA)
+        end_time = self.latest_obs_time
+        observed = self._latest_data_df.loc[begin_time:end_time,].wind_speed
+        ## Check if all observed data in this time window is invalid
+        return observed.isna().all()
 
     # +------------------------------------------------------------
     # | Handle different products

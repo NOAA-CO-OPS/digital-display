@@ -105,6 +105,9 @@ MARKERSIZE = 100
 XTICKLABEL_TIME_FORMAT = '%m-%d %H'
 XTICKLABEL_HOURS = np.linspace (0, 22, 12) # X-ticks at even hours
 
+## Number of continuous bad data to trigger no-plotting
+N_HOURS_NULL_DATA = 4
+
 ## Acceptable number types
 NUMBER_TYPES = [float, int, np.float, np.float16, np.float32, np.float64,
                 np.int, np.int0, np.int8, np.int16, np.int32, np.int64]
@@ -132,7 +135,7 @@ class product (object):
         self._now = None
         self._latest_data_df = None
         self._hours_pad = [HOURS_PAD_BEFORE, HOURS_PAD_AFTER]
-        
+
         ## GIF settings
         self._do_animation = True
         self._gif_loop = GIF_LOOP
@@ -167,6 +170,17 @@ class product (object):
         if self._latest_data_df is None: return None
         not_na = ~self._latest_data_df.observed.isna()
         return self._latest_data_df.observed.index[not_na][-1]
+
+    @property
+    def has_all_nan (self):
+        ## If dataframe is None -> no past data
+        if self._latest_data_df is None: return False
+        ## Slice out observed data from N hours before obs time
+        begin_time = self.latest_obs_time - pd.offsets.Hour (N_HOURS_NULL_DATA)
+        end_time = self.latest_obs_time
+        observed = self._latest_data_df.loc[begin_time:end_time,].observed
+        ## Check if all observed data in this time window is invalid
+        return observed.isna().all()
 
     @property
     def now (self): return self._now
@@ -510,16 +524,17 @@ class product (object):
         # 1. Plot observation up to dot time
         before_dot_obs = df[np.logical_and (df.index <= dot_time, ~df.observed.isna())]
         axis.plot(before_dot_obs.index, before_dot_obs.observed, c='red',
-                  label='Observed', linewidth=self._linewidth)
+                  label='Observed', linewidth=self._linewidth, alpha=0.7)
 
         # 2. Add red dot for obs
         latest_obs = before_dot_obs.tail(1)
-        axis.scatter (latest_obs.index[0], latest_obs['observed'][0], c='red',
-                      s=self._markersize, alpha=0.7)
+        if np.isfinite (latest_obs['observed'][0]):
+            axis.scatter (latest_obs.index[0], latest_obs['observed'][0], c='red',
+                        s=self._markersize, alpha=0.7)
 
         # 3. Add vertical line for recent data time in LST/LDT
         axis.axvline (self._now.strftime ('%Y-%m-%d %H:%M'), color='green',
-                      label=CURRENT_TIME_LABEL, linewidth=self._linewidth)
+                      label=CURRENT_TIME_LABEL, linewidth=self._linewidth, alpha=0.7)
 
         # 4. Format x-axis
         axis.set_xlim(df.index[0],df.index[-1])

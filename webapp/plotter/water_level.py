@@ -54,6 +54,9 @@ FEET_TO_METERS = 1 / 3.28084
 ## Monitor dpi
 DPI = product.DPI
 
+## Number of continuous bad data to trigger no-plot-shown
+N_HOURS_NULL_DATA = product.N_HOURS_NULL_DATA
+
 ###############################################
 ## Define short lambda functions
 ###############################################
@@ -76,20 +79,6 @@ class water_level (product.product):
     # +------------------------------------------------------------
     # | Getters & setters
     # +------------------------------------------------------------
-    @property
-    def pred (self):
-        if self._latest_data_df is None: return None
-
-        not_na = ~self._latest_data_df.predicted_hilo.isna()
-
-        now = pd.to_datetime (self.now.strftime ('%Y-%m-%d %H:%M:%S'))
-        time_diff = abs (self._latest_data_df.index - now).total_seconds()
-        min_index = time_diff.argmin ()
-
-        abs (df.index - pandas.to_datetime (water_level_product.now.strftime ('%Y-%m-%d %H:%M:%S'))).total_seconds().argmin()
-
-        not_na = ~self._latest_data_df.predicted.isna()
-        return self._latest_data_df.predicted.values[not_na][-1]
 
     # +------------------------------------------------------------
     # | Collect water level data
@@ -142,7 +131,7 @@ class water_level (product.product):
 
         ## Rows before now: only keep those with valid obs or predicted_hilo 
         keep_before = np.logical_or(~df.observed.isna(), ~df.predicted_hilo.isna())
-        ## Rows after now : only keep 6, 12, 18, etc i.e. the 6-min stepsmet > 
+        ## Rows after now : only keep 6, 12, 18, etc i.e. the 6-min steps
         keep_after = df.index > pd.to_datetime(self._now.strftime(TIME_FORMAT))
         keep_after = np.logical_and(keep_after, df.index.minute.isin (list (range (0, 59, 6))))
 
@@ -175,7 +164,7 @@ class water_level (product.product):
 
         # 1. Plot entire prediction time-series
         axis.plot(df.index.values, df.predicted.values, color='blue',
-                  label='Predicted', linewidth=self._linewidth)
+                  label='Predicted', linewidth=self._linewidth, alpha=0.7)
 
         # 2. Plot standard observed time-series
         ylimits = [df.min().min()-0.4, df.max().max()+0.4]

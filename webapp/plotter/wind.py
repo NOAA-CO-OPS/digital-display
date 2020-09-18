@@ -27,9 +27,7 @@ import requests, pytz, glob, os, sys
 import numpy as np
 import pandas as pd
 import datetime as dt
-
-sys.path.append('C:\\Users\\elim.thompson\\Documents\\ddp\\webapp\\plotter\\')
-import product
+from . import product
 
 import matplotlib
 matplotlib.use ('Agg')
@@ -46,6 +44,9 @@ plt.rc ('font', serif='Computer Modern Roman')
 ###############################################
 ## Monitor dpi
 DPI = product.DPI
+
+## Number of continuous bad data to trigger no-plot-shown
+N_HOURS_NULL_DATA = product.N_HOURS_NULL_DATA
 
 ## Time format for display
 TIME_FORMAT = '%m/%d/%Y %I:%M %p'
@@ -129,6 +130,17 @@ class wind (product.product):
     @property
     def latest_gust_cardinal (self):
         return self.latest_wind_cardinal
+
+    @property
+    def has_all_nan (self):
+        ## If dataframe is None -> no past data
+        if self._latest_data_df is None: return False
+        ## Slice out observed data from N hours before obs time
+        begin_time = self.latest_obs_time - pd.offsets.Hour (N_HOURS_NULL_DATA)
+        end_time = self.latest_obs_time
+        observed = self._latest_data_df.loc[begin_time:end_time,].wind_speed
+        ## Check if all observed data in this time window is invalid
+        return observed.isna().all()
 
     # +------------------------------------------------------------
     # | Collect & handle wind data
