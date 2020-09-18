@@ -1,6 +1,29 @@
-import datetime as dt
-import pytz, sys, schedule, time
+#!/bin/python37
 
+##
+## By Elim Thompson 09/09/2020
+##
+## This script is a cron-like script to generate GIF files every 6 minutes. This
+## script must be run together with hybridapp.py in order to have a webapp with
+## plots updated.
+## 
+## To test plotter script, it is recommended to use generate_plots_standalone.py
+## which is the same as this script minus the cron-like scheduling. This can
+## remove the GIF generation every 6 mintues.
+## 
+## To run: 
+##  $ python run_plot_schedule.py
+## 
+##############################################################################
+
+#####################################
+### Import libraries
+#####################################
+## Standard packages
+import pytz, sys, schedule, time
+import datetime as dt
+
+## Custom packages to create gif
 from plotter import product
 from plotter.air_pressure import air_pressure
 from plotter.temperature import temperature

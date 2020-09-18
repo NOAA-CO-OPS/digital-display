@@ -3,7 +3,9 @@
 ##
 ## By Elim Thompson 09/09/2020
 ##
-## This script generates a webapp that follows CODE DDP team mock-up.
+## This script generates a webapp that follows CODE DDP team mock-up. This
+## script must be run with run_plot_schedule.py in order for the GIF plots to
+## be updated.
 ## 
 ## To run: 
 ## * install flask, dash, and dash_bootstrap_components
@@ -367,4 +369,6 @@ cc.register(app)
 if __name__ == '__main__':
 
     ## Run app with debug!
-    app.run_server(debug=True)
+    #  dev_tools_hot_reload = False prevents reloading of website when
+    #  files in assets are modified
+    app.run_server(debug=True, dev_tools_hot_reload=False)
