@@ -31,6 +31,9 @@ from plotter.water_level import water_level
 from plotter.wind import wind
 from plotter.met import met
 
+#####################################
+### Define functions
+#####################################
 def create_gifs ():
 
     ## Define now - same across all products
@@ -51,27 +54,30 @@ def create_gifs ():
     # pressure_product.now = now
     # pressure_product.create_gif ()
 
-    # ## Initialize temperature product
+    ## Initialize temperature product
     # temp_product = temperature ()
     # temp_product.plot_path = 'plotter/plots/temps/'
     # temp_product.assets_path = 'assets/'
     # temp_product.now = now
     # temp_product.create_gif ()
 
-    # ## Initialize wind product
+    ## Initialize wind product
     # wind_product = wind ()
     # wind_product.plot_path = 'plotter/plots/winds/'
     # wind_product.assets_path = 'assets/'
     # wind_product.now = now
     # wind_product.create_gif (doNeedle=False)
 
-    # # Initialize water level product
+    ## Initialize water level product
     water_level_product = water_level ()
     water_level_product.plot_path = 'plotter/plots/water_levels/'
     water_level_product.assets_path = 'assets/'
     water_level_product.now = now
     water_level_product.create_gif()
 
+#####################################
+### Script starts here!
+#####################################
 if __name__ == '__main__':
 
     ## Create the latest GIFs when this script is called
