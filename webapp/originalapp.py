@@ -158,7 +158,7 @@ def make_layout():
     # Right column - plots
     ## 0. intro video
     html.Div([
-        html.Img(src=app.get_asset_url('introVideo.gif'), style={'width':2000, 'height':1000})
+        html.Img(src=app.get_asset_url('intro_video.gif'), style={'width':2000, 'height':1000})
     ], id='intro_video', style={'marginBottom': 50, 'marginTop': 25, 'marginLeft':15, 'marginRight':15, 'fontSize':18,'display':'block'}),
 
     ## 1. water level
@@ -176,7 +176,7 @@ def make_layout():
             dcc.Markdown ('**Air & Water Temperature**', style={'fontSize':25, 'textAlign':'center'}),
             dcc.Markdown (id='title_air_water_temp',  style={'fontSize':20, 'textAlign':'center'}),
         ], style={'backgroundColor':'#E0FFFF', 'textAlign':'center'}),
-        html.Img(src=app.get_asset_url('temp.gif'), style={'width':2000, 'height':1000})
+        html.Img(src=app.get_asset_url('temperature.gif'), style={'width':2000, 'height':1000})
     ], id='temp', style={'marginBottom': 50, 'marginTop': 25, 'marginLeft':15, 'marginRight':15, 'fontSize':18, 'display':'none'}),
     
     ## 3. Barometric Pressure
@@ -185,7 +185,7 @@ def make_layout():
             dcc.Markdown ('**Air Pressure**', style={'fontSize':25, 'textAlign':'center'}),
             dcc.Markdown (id='title_air_pressure', style={'fontSize':20, 'textAlign':'center'}),
         ], style={'backgroundColor':'#E0FFFF', 'textAlign':'center'}),
-        html.Img(src=app.get_asset_url('pressure.gif'), style={'width':2000, 'height':1000})
+        html.Img(src=app.get_asset_url('air_pressure.gif'), style={'width':2000, 'height':1000})
     ], id='air_pressure', style={'marginBottom': 50, 'marginTop': 25, 'marginLeft':15, 'marginRight':15, 'fontSize':18, 'display':'none'}),
     
     ## 4. Winds
@@ -194,7 +194,7 @@ def make_layout():
             dcc.Markdown ('**Winds**', style={'fontSize':25, 'textAlign':'center'}),
             dcc.Markdown (id='title_winds', style={'fontSize':20, 'textAlign':'center'}),
         ], style={'backgroundColor':'#E0FFFF', 'textAlign':'center'}),
-        html.Img(src=app.get_asset_url('winds.gif'), style={'width':2000, 'height':1000})
+        html.Img(src=app.get_asset_url('wind.gif'), style={'width':2000, 'height':1000})
     ], id='winds', style={'marginBottom': 50, 'marginTop': 25, 'marginLeft':15, 'marginRight':15, 'fontSize':18, 'display':'none'}), 
 
     ]), 
