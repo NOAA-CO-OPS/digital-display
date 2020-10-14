@@ -6,7 +6,7 @@ Initial version of micro web uses python Flask & Dash (hybridapp.py). A local ho
 
 1. Clone repo. Using your favorite prompt (cmd, WindowsPowerShell, etc)
 ```shell
-$ cd C:/Users/first.lastname/ddp/
+$ cd C:/Users/first.lastname/Documents
 $ git clone https://github.com/NOAA-CO-OPS/digital-display.git digital-display
 ```
 2. create virtual environment ddp--change directory to digital-display folder and run
