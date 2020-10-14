@@ -44,7 +44,7 @@ pip install -r requirement.txt
 1. Open your favorite prompt (cmd prompt, WindowsPowerShell, Anaconda prompt, etc)
 2. Execute run_plot_schedule.py
 ```shell
-$ cd C:\\Users\\first.lastname\\ddp\\digital-display\\webapp\\plotter\\
+$ cd C:\\Users\\first.lastname\\ddp\\digital-display\\webapp\\
 $ python run_plot_schedule.py
 ```
 Do not close this prompt until you are done with ddp work.
