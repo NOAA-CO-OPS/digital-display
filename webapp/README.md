@@ -9,24 +9,24 @@ Initial version of micro web uses python Flask & Dash (hybridapp.py). A local ho
 $ cd C:/Users/first.lastname/Documents
 $ git clone https://github.com/NOAA-CO-OPS/digital-display.git digital-display
 ```
-2. create virtual environment ddp--change directory to digital-display folder and run
-   a. Create environment
-   ```shell
-   conda create --name ddp 
-   ```
-   b. Install pip if it is not already installed
-   ```shell
-   conda install pip
-   ```
-   c. Install packages
-   ```shell
-   pip install -r requirement.txt
-   ```
-3. activate virtual environment
+2. Create virtual environment ddp
+```shell
+conda create --name ddp 
+```
+3. Activate virtual environment
 ```shell
 conda activate ddp
-```	
-4. download all mp4 / gif from [webbapp_content_for_test Google folder](https://drive.google.com/drive/folders/1H20lAG-23YuuaqrZyWKHD39qFWGU4E4W?usp=sharing) to digital-display/webapp/assets/
+```
+3. Install packages
+First, install pip if it is not already installed
+```shell
+conda install pip
+```
+Then install packages
+```shell
+pip install -r requirement.txt
+```
+	
 
 ### To pull the latest updates to the GitHub repository
 1.  Open Git Bash
