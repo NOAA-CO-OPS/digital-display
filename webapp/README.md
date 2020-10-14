@@ -4,7 +4,7 @@ Initial version of micro web uses python Flask & Dash (hybridapp.py). A local ho
 
 ### Preparation
 
-1. Clone repo using your favorite prompt (cmd, WindowsPowerShell, etc)
+1. Clone repo using your favorite prompt (cmd, Git Bash, WindowsPowerShell, etc)
 ```shell
 $ cd C:/Users/first.lastname/Documents
 $ git clone https://github.com/NOAA-CO-OPS/digital-display.git digital-display
