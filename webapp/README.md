@@ -10,9 +10,18 @@ $ cd C:/Users/first.lastname/Documents
 $ git clone https://github.com/NOAA-CO-OPS/digital-display.git digital-display
 ```
 2. create virtual environment ddp--change directory to digital-display folder and run
-```shell
-conda env create -f environment.yml
-```
+   a. Create environment
+   ```shell
+   conda create --name myenv 
+   ```
+   b. Install pip if it is not already installed
+   ```shell
+   conda install pip
+   ```
+   c. Install packages
+   ```shell
+   pip install -r requirements.txt
+   ```
 3. activate virtual environment
 ```shell
 conda activate ddp
