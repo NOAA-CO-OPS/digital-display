@@ -26,7 +26,8 @@ Then install packages
 ```shell
 pip install -r requirement.txt
 ```
-	
+4. Download static graphics from webapp_content folder in Station Digital Display Project google drive and save in assets folder in local directory.
+
 
 ### To pull the latest updates to the GitHub repository
 1.  Open Git Bash or Anaconda Powershell Prompt
