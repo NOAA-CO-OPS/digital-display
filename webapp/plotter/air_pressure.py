@@ -220,9 +220,9 @@ class air_pressure (product.product):
         for t in xsubticks: axis.plot([t,t], tick, lw=0.75, color="k")
 
         #  Add "Air pressure mb"
-        lab = axis.text(3*np.pi/2-17/180*np.pi,y+0.1, 'Air pressure\nmb', transform=label.get_transform(),
-                        ha='center', va='bottom', fontsize=self._fontsize-7)        
-        lab.set_rotation(0)
+#         lab = axis.text(3*np.pi/2-17/180*np.pi,y+0.1, 'Air pressure\nmb', transform=label.get_transform(),
+#                         ha='center', va='bottom', fontsize=self._fontsize-7)        
+#         lab.set_rotation(0)
 
         #  5. Draw an inner line
         thetas = np.linspace (-45*np.pi/180, 225*np.pi/180, 500)

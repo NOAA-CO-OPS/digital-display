@@ -298,7 +298,7 @@ class product (object):
         self._check_is_number (anInt)
         ## Make sure input is either 0 or 1
         if not anInt == 0 and not anInt == 1:
-            raise IOError ('Please provide either 0 or 1 for git_loop.')
+            raise IOError ('Please provide either 0 or 1 for gif_loop.')
         self._gif_loop = anInt
 
     @property
