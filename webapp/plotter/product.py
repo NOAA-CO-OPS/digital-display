@@ -585,4 +585,4 @@ class product (object):
         duration_ms = self.gif_total_duration_sec / len (frames) * 1000
 
         frames[0].save (gif_file, format='GIF', append_images=frames[1:],
-/usr/bin/bash: q: command not found
+                        save_all=True, duration=duration_ms, loop=self.gif_loop)
