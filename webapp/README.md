@@ -29,8 +29,8 @@ pip install -r requirement.txt
 	
 
 ### To pull the latest updates to the GitHub repository
-1.  Open Git Bash
-2.  Change directories to the digital-display repository folder on your local computer (*remember that Git Bash only accepts FORWARD slashes)
+1.  Open Git Bash or Anaconda Powershell Prompt
+2.  Change directories to the digital-display repository folder on your local computer
 3.  Enter 'git pull origin master'
 
 ### To update your virtual environment
