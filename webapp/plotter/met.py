@@ -257,10 +257,12 @@ class met (product.product):
     # | Plot functions
     # +------------------------------------------------------------
     def _write_legend (self, axis, at_dot):
-
+        bbox = dict(boxstyle="round", fc="0.8") ## added 10/23/2020
+        text=""
         ## Loop through each label to be printed
-        for index, label in enumerate (MET_LEGEND[::-1]):
+        for index, label in enumerate (MET_LEGEND):
             llabel = label.lower()
+            
             # Gather value in English
             value_fmt = '{0}' if 'data' in llabel else \
                         '{0:3}' if 'direction' in llabel else '{0:.1f}'
@@ -273,7 +275,7 @@ class met (product.product):
             unit = ' kts' if 'speed' in llabel else \
                    '$^\circ$F' if 'temperature' in llabel else \
                    ' mb' if 'pressure' in llabel else '' 
-            text = label + ': ' + value_fmt.format (value) + unit
+            text += label + ': ' + value_fmt.format (value) + unit
             # For speed, add in value in m/s
             if 'speed' in llabel:
                 value = convert_knots_to_mPerSec (value)
@@ -284,7 +286,9 @@ class met (product.product):
                 text += ' (' + value_fmt.format (value) + '$^\circ$C)'
             if not isinstance (value, str) and not np.isfinite (value):
                 value_fmt, value = '{0}', 'n/a'
-            axis.annotate (text, (0, index), color='black', fontsize=self._fontsize-6)
+            text+="\n"
+        axis.annotate (text, (0,1), color='black', fontsize=self._fontsize-6,bbox=bbox) ## added 10/23/2020
+       
 
         ## Format axis
         axis.set_ylim ([0, len (MET_LEGEND)])
@@ -298,16 +302,19 @@ class met (product.product):
         
         ## Create a huuuge canvas with 2 subplots.
         fig = plt.figure(figsize=self.fig_size, dpi=DPI)
+        
         gs = gridspec.GridSpec (ncols=3, nrows=1, width_ratios=[2, 0.5, 1])
         gs.update (wspace=0.3)
-
+        
         ## Left: wind and pressure
-        subgs = gs[0].subgridspec (2, 1, height_ratios=[1, 1])
+        subgs = gs[0].subgridspec (2, 1, height_ratios=[1, 1],hspace=0.4)
         #  Top: wind
         axis = fig.add_subplot(subgs[0], polar=True)
         self._wind._create_wind_rose (axis, dot_time, doNeedle=doWindNeedle)
+        axis.set_title('Winds'+'\n', fontsize=22, fontweight='bold') ## added 10/19/2020
         #  Bottom: pressure
         axis = fig.add_subplot(subgs[1])
+        axis.set_title('\n'+'Barometric Pressure'+'\n', fontsize=22, fontweight='bold') ## added 10/19/2020
         before_dot = df[df.index <= dot_time].tail (10)
         pressure_thetas = before_dot.pressure_theta.values
         self._air_pressure._create_a_barometer_on_main_axis (axis, pressure_thetas)
@@ -316,6 +323,7 @@ class met (product.product):
         subgs = gs[2].subgridspec (2, 1, height_ratios=[2.5, 1])
         #  Top: temperature
         axis = fig.add_subplot(subgs[0])
+        axis.set_title('Temperature'+'\n', fontsize=22, fontweight='bold') ## added 10/19/2020
         ylimits = [self._temperature.min_temp-5, self._temperature.max_temp+5]
         yticks = np.linspace (ylimits[0], ylimits[1], N_YTICKS)        
         at_dot = df[df.index == dot_time].tail (1)
@@ -325,8 +333,9 @@ class met (product.product):
         self._temperature._create_a_thermometer_on_main_axis (axis, water_height, yticks, isAir=False)
         #  Bottom: legend
         axis = fig.add_subplot(subgs[1])
+        axis.set_title('Recent Data:', fontsize=22, fontweight='bold',loc='left') # Need to reformate to 'Recent data as of timestamp'
         self._write_legend (axis, at_dot)
-
+        
         ## Format title / layout
         plt.savefig(self._plot_path + '/' + dot_time.strftime ('%Y%m%d%H%M') + '.jpg', dpi=DPI)
         

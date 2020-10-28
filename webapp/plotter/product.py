@@ -298,7 +298,7 @@ class product (object):
         self._check_is_number (anInt)
         ## Make sure input is either 0 or 1
         if not anInt == 0 and not anInt == 1:
-            raise IOError ('Please provide either 0 or 1 for git_loop.')
+            raise IOError ('Please provide either 0 or 1 for gif_loop.')
         self._gif_loop = anInt
 
     @property
@@ -585,4 +585,4 @@ class product (object):
         duration_ms = self.gif_total_duration_sec / len (frames) * 1000
 
         frames[0].save (gif_file, format='GIF', append_images=frames[1:],
-                        save_all=True, duration=duration_ms, loop=self.gif_loop)
+                        save_all=True, duration=duration_ms, loop=1) #loop=self.gif_loop)
