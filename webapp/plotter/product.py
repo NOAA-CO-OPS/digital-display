@@ -102,7 +102,7 @@ FONTSIZE = 17 # Font size of text
 N_YTICKS = 8
 LINEWIDTH = 5
 MARKERSIZE = 100
-XTICKLABEL_TIME_FORMAT = '%m-%d %H'
+XTICKLABEL_TIME_FORMAT = '%m/%d %H:%M'
 XTICKLABEL_HOURS = np.linspace (0, 22, 12) # X-ticks at even hours
 
 ## Number of continuous bad data to trigger no-plotting
