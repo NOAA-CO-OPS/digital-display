@@ -333,7 +333,7 @@ class met (product.product):
         self._temperature._create_a_thermometer_on_main_axis (axis, water_height, yticks, isAir=False)
         #  Bottom: legend
         axis = fig.add_subplot(subgs[1])
-        axis.set_title('Recent Data: \n'+str(dot_time.strftime ('%Y/%m/%d %H:%M %p')), fontsize=22, fontweight='bold',loc='left') # Need to reformate to 'Recent data as of timestamp'
+        axis.set_title('Recent Data: \n'+str(dot_time.strftime ('%Y/%m/%d %H:%M %p')), fontsize=16, fontweight='bold',loc='left') # Need to reformate to 'Recent data as of timestamp'
         self._write_legend (axis, at_dot)
         
         ## Format title / layout

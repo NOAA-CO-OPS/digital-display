@@ -72,7 +72,7 @@ PRODUCT_NAMES = ['water_level', 'temperature', 'air_pressure', 'wind', 'met']
 ##  * water level at MLLW
 ## SM stid: 9410840
 API = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?" + \
-      "begin_date={begin_date}&end_date={end_date}&station=1770000" + \
+      "begin_date={begin_date}&end_date={end_date}&station=9410840" + \
       "&product={product}&interval={interval}&datum=MLLW&time_zone=lst_ldt" + \
       "&units=english&format=json"
 
