@@ -352,7 +352,7 @@ def update_latest(n_updates):
 
     ## Define the text on the left panel
     latest_time = '{0} Local Time'.format (latest['time'])
-    latest_water_level = '**Water Level**: {0:.3f} ft Above MLLW'.format (latest['water_level_obs'])
+    latest_water_level = '**Water Level**: {0:.2f} ft Above MLLW'.format (latest['water_level_obs'])
     latest_water_temp = '**Water Temp**: {0:.0f}&deg;F'.format (latest['water_temp'])
     latest_air_temp = '**Air Temp**: {0:.0f}&deg;F'.format (latest['air_temp'])
     latest_air_pressure = '**Barometric Pressure**: {0:.1f} mb'.format (latest['air_pressure'])

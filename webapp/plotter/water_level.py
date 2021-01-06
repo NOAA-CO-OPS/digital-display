@@ -179,7 +179,7 @@ class water_level (product.product):
             xvalues = df[df.event==etype].index
             yvalues = df[df.event==etype].predicted_hilo
             axis.scatter (xvalues, yvalues, marker='${0}$'.format (etype),
-                          c='black', s=self._markersize*3)
+                          c='black', s=self._markersize*3,zorder=3)
             for (x, y) in zip (xvalues, yvalues):
                 yloc = y + 0.1 if etype=='H' else y - 0.15
                 text = '{0:.2f} {1}'.format (y, yunit)

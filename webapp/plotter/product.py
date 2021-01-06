@@ -70,8 +70,9 @@ PRODUCT_NAMES = ['water_level', 'temperature', 'air_pressure', 'wind', 'met']
 ##  * in English unit (feet, degF)
 ##  * in JSON for python dictionary
 ##  * water level at MLLW
+## SM stid: 9410840
 API = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?" + \
-      "begin_date={begin_date}&end_date={end_date}&station=9410840" + \
+      "begin_date={begin_date}&end_date={end_date}&station=1770000" + \
       "&product={product}&interval={interval}&datum=MLLW&time_zone=lst_ldt" + \
       "&units=english&format=json"
 
@@ -533,8 +534,8 @@ class product (object):
                         s=self._markersize, alpha=0.7)
 
         # 3. Add vertical line for recent data time in LST/LDT
-        axis.axvline (self._now.strftime ('%Y-%m-%d %H:%M'), color='green',
-                      label=CURRENT_TIME_LABEL, linewidth=self._linewidth, alpha=0.7)
+#         axis.axvline (self._now.strftime ('%Y-%m-%d %H:%M'), color='green',
+#                       label=CURRENT_TIME_LABEL, linewidth=self._linewidth, alpha=0.7)
 
         # 4. Format x-axis
         axis.set_xlim(df.index[0],df.index[-1])
@@ -578,8 +579,8 @@ class product (object):
         ## If don't do animation, store the last frame as '.gif' for
         ## consistency with webapp code.
         if not self.do_animation:
-           frames[-1].save (gif_file, format='GIF')
-           return
+            frames[-1].save (gif_file, format='GIF')
+            return
 
         # Calculate time (ms) per frame
         duration_ms = self.gif_total_duration_sec / len (frames) * 1000
