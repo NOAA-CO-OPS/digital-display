@@ -201,8 +201,8 @@ def panel_layout():
             ## 1 row with 2 items: NOAA logo + TAC logo
             dbc.Row ([html.Img (src='/assets/noaa_logo.png',
                                 style={'width':100, 'height':100, 'marginBottom':30, 'marginTop':10, 'marginLeft':10}),
-                      html.Img (src='/assets/tac_logo.jpeg',
-                                style={'width':230, 'height':90, 'marginBottom':30, 'marginTop':10, 'marginLeft':10})]),
+                      html.Img (src='/assets/coops_logo.jpeg',
+                                style={'width':384, 'height':69, 'marginBottom':30, 'marginTop':10, 'marginLeft':10})]),
             ## Station header
             dcc.Markdown ('**Santa Monica, CA** 9410840', style={'fontSize':PANEL_STATION_FONTSIZE}),
             ## Most recent data
