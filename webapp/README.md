@@ -83,10 +83,15 @@ python3 -m pip install -r requirement.txt
 
 1. Open command prompt (cmd prompt, WindowsPowerShell, Anaconda prompt, etc)
 2. Activate ddp environment
-3. Navigate to the webapp folder
 ```shell
-cd C:\\Users\\first.lastname\\ddp\\digital-display\\webapp\\
+Laptop: 
+conda activate ddp
+Raspberry pi: 
+cd /home/pi/Desktop/ddp
+source bin/activate
 ```
+3. Navigate to the webapp folder
+
 4. Begin generating GIFs
 ```shell
 python run_plot_schedule.py
