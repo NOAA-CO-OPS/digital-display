@@ -79,16 +79,16 @@ python3 -m pip install -r requirement.txt
 2.  Change directories to the digital-display repository folder on your local computer
 3.  Enter 'git pull origin master' 
 
-### Run web application
+## Run web application
 
 1. Open command prompt (cmd prompt, WindowsPowerShell, Anaconda prompt, etc)
 2. Activate ddp environment
 ```shell
 Laptop: 
-conda activate ddp
+$ conda activate ddp
 Raspberry pi: 
-cd /home/pi/Desktop/ddp
-source bin/activate
+$ cd /home/pi/Desktop/ddp
+$ source bin/activate
 ```
 3. Navigate to the webapp folder
 
@@ -110,7 +110,7 @@ python hybridapp.py
 ```
 Note: Command prompts must remain open while running web application.
 
-### Launch web application
+## Launch web application
 
 You will see the following message in your command prompt running hybridapp.py...
 ```shell
@@ -124,8 +124,7 @@ When you see the above message, open a new web browser tab and type in URL http:
 
 Note: You may have to zoom out for content to display correctly since it is formatted for a 23" monitor.
 
-### When you are done working on ddp
-You should have 2 prompts opened. Make sure you close them both to avoid unnecessary background processing.
+Note: When you are done running the web application, be sure to close both command prompts to avoid unnecessary background processing.
 
 ### Troubleshooting
 
