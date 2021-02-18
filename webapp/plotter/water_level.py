@@ -114,6 +114,11 @@ class water_level (product.product):
 
         ## Get 6-min observation time-series: v, f
         obs_df = self._load_latest(is_hilo=False, is_predictions=False)
+
+        if obs_df is None:
+            self._latest_data_df = None
+            return
+
         obs_df = obs_df.drop(axis=1, columns=[col for col in obs_df.columns if not col=='v'])
         obs_df.columns = ['observed']
 
@@ -217,14 +222,16 @@ class water_level (product.product):
         ## Toggle from feet to meters and back every N frames
         doMetric = True # Start with Feet
         end_time = self.latest_obs_time
-        timestamps = list (self._latest_data_df.iloc[::10, :].index) + [end_time]
-        for index, dot_time in enumerate (sorted (timestamps)):
-            # If there is no more valid observation points, exit the loop
-            if dot_time > end_time: break
-            # Toggle units
-            if index % self._toggle_units_freq == 0: doMetric = not doMetric
-            # Generate the plot for this time stamp
-            self._generate_one_plot (dot_time, doMetric=doMetric)
 
-        ## Create gif
-        self._make_gif()
+        if self._latest_data_df is not None:
+            timestamps = list (self._latest_data_df.iloc[::10, :].index) + [end_time]
+            for index, dot_time in enumerate (sorted (timestamps)):
+                # If there is no more valid observation points, exit the loop
+                if dot_time > end_time: break
+                # Toggle units
+                if index % self._toggle_units_freq == 0: doMetric = not doMetric
+                # Generate the plot for this time stamp
+                self._generate_one_plot (dot_time, doMetric=doMetric)
+
+            ## Create gif
+            self._make_gif()

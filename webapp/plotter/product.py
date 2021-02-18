@@ -498,6 +498,9 @@ class product (object):
                                    begin_date.strftime ('%Y%m%d'),
                                    end_date.strftime ('%Y%m%d'))
 
+        if content is None:
+            return None
+
         ## If key "predictions" is available, this is a request to pull water
         ## level predictions. Otherwise, it is pulling data with 'data' key.
         data_key = 'predictions' if is_predictions else 'data'

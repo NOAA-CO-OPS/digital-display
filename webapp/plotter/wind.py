@@ -175,6 +175,11 @@ class wind (product.product):
 
         ## Get 6-min observation time-series: t, s, d, dr, g
         obs_df = self._load_latest()
+
+        if obs_df is None:
+            self._latest_data_df = None
+            return
+
         obs_df = obs_df.drop(axis=1, columns=['f'])
         obs_df.columns = ['wind_speed', 'wind_direction', 'wind_cardinal', 'gust_speed']
 

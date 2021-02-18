@@ -236,14 +236,29 @@ class met (product.product):
         #  1. Wind: ['wind', 'degN', 'wind_cardinal', 'gust', 'radius', 'theta']
         self._wind._load_data()
         wind_df = self._wind._latest_data_df 
+
+        if wind_df is None:
+            self._wind._latest_data_df = None
+            return
+
         wind_df.columns = ['wind_speed', 'wind_direction', 'wind_cardinal',
                            'gust_speed', 'wind_radius', 'wind_theta']
         #  2. Temperature: ['air', 'water', 'air_height', 'water_height']
         self._temperature._load_data()
         temp_df = self._temperature._latest_data_df
+
+        if temp_df is None:
+            self._temperature._latest_data_df = None
+            return
+
         #  3. Pressure: ['observed', 'theta']
         self._air_pressure._load_data()
         pres_df = self._air_pressure._latest_data_df 
+
+        if pres_df is None:
+            self._air_pressure._latest_data_df = None
+            return
+
         pres_df.columns = ['pressure', 'pressure_theta']
 
         ## Merge all met data into 1 dataframe
@@ -410,15 +425,17 @@ class met (product.product):
         ## Generate each time step until the last observation point
         doMetric = True # Start with English
         end_time = self.latest_obs_time
-        timestamps = list (self._latest_data_df.iloc[::10, :].index) + [end_time]
-        for index, dot_time in enumerate (sorted (timestamps)):
-            # If there is no more valid observation points, exit the loop
-            if dot_time > end_time: break
-            # Toggle units
-            if index % self._toggle_units_freq == 0: doMetric = not doMetric            
-            # Generate the plot for this time stamp
-            self._generate_one_plot (dot_time, doWindNeedle=doWindNeedle,
+        
+        if self._latest_data_df is not None:
+            timestamps = list (self._latest_data_df.iloc[::10, :].index) + [end_time]
+            for index, dot_time in enumerate (sorted (timestamps)):
+                # If there is no more valid observation points, exit the loop
+                if dot_time > end_time: break
+                # Toggle units
+                if index % self._toggle_units_freq == 0: doMetric = not doMetric            
+                # Generate the plot for this time stamp
+                self._generate_one_plot (dot_time, doWindNeedle=doWindNeedle,
                                      three_columns=three_columns)
 
-        ## Create gif
-        self._make_gif()
+            ## Create gif
+            self._make_gif()

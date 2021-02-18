@@ -53,7 +53,7 @@ product_names = ['water_level', 'met']
 #  Hybrid app loops through 4 pages in the following order
 product_pages = ['intro_video', 'water_level', 'sea_level_trend', 'met']
 #  If null data for N hours, loop through 2 pages in the following order
-default_pages = ['intro_video', 'sea_level_trend']
+default_pages = ['intro_video', 'sea_level_trend','dataunavailable']
 
 ## Define keys in latest data for left panel
 LATEST_KEYS = ['air_temp', 'water_temp', 'air_pressure', 'wind_speed', 
